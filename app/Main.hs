@@ -4,29 +4,34 @@
 module Main (main) where
 
 -- import Lib
+import Text.Parsec
 
-instance Show LEnum where
-  show (DEF _) = show "func LEnum -> LEnum"
-  show (OPER operation) = show operation
-  show (LIST consList) = show consList
-  show (STR string) = show string
-  show (SYMBOL char) = show char
+data Token = TInt Int | TList [Token] | TStr String | TSymbol Char | TPlus | TMul deriving (Eq)
+instance Show Token where
+  show x = case x of
+    TInt i -> show i
+    TList [] -> "()"
+    TList xs -> mconcat ["(", tail $ concatMap ((" " ++) . show) xs, ")"]
+    TStr s -> show s
+    TSymbol c -> show c
+    TPlus -> "+"
+    TMul -> "*"
+    _ -> error "token"
 
-data LEnum = OPER Operation | LIST ConsList | STR String | SYMBOL Char | DEF (LEnum -> LEnum)
-
-data Operation = Minus | Plus deriving Show
-data ItemGList = N Int | S String | C Char deriving Show
-type ConsList = [ItemGList]
-
-gList :: ConsList 
-gList = [N 14, S "hello", C 's']
-
-b,c,d,e :: LEnum 
-b = OPER Minus
-c = LIST $ reverse gList 
-d = STR "ya stroka"
-e = SYMBOL 'c'
-
+d2 = TList []
+d1 = TList [TInt 1, TPlus, TStr "haha", TMul]
 
 main :: IO ()
-main = mapM_ print [b,c,d,e, DEF (\_ -> SYMBOL 'n')]
+main = do
+  -- mapM_ print [b,c,d,e, DEF (\_ -> SYMBOL 'n')]
+  loop
+
+-- надо написать для каждого токена свой парсер, далее разбить свтроку по пробелам
+-- и на каждый кусок натравить парсер по очереди, последним будет символ.
+
+loop :: IO ()
+loop = do
+  putStr ">>> "
+  inText <- getLine
+  putStrLn inText
+  loop
