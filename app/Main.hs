@@ -5,8 +5,9 @@ module Main (main) where
 
 -- import Lib
 import Text.Parsec
+import Text.Parsec.String (Parser)
 
-data Token = TInt Int | TList [Token] | TStr String | TSymbol Char | TPlus | TMul deriving (Eq)
+data Token = TInt Int | TDouble Double | TList [Token] | TStr String | TSymbol Char | TPlus | TMul deriving (Eq)
 instance Show Token where
   show x = case x of
     TInt i -> show i
@@ -28,6 +29,11 @@ main = do
 
 -- надо написать для каждого токена свой парсер, далее разбить свтроку по пробелам
 -- и на каждый кусок натравить парсер по очереди, последним будет символ.
+--
+parseTInt :: Parser Token
+parseTInt = do
+  n <- many1 digit
+  pure $ TInt $ read n 
 
 loop :: IO ()
 loop = do
