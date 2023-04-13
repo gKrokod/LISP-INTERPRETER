@@ -10,6 +10,10 @@ extra-source-files:
 - README.md
 - CHANGELOG.md
 
+default-extensions:
+# - OverloadedStrings
+- DeriveGeneric
+- LambdaCase
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
 # category:            Web
