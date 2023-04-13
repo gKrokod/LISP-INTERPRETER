@@ -3,16 +3,33 @@
 -- {-# LANGUAGE DeriveAnyClass #-}
 module Main (main) where
 
--- import Lib
 import Text.Parsec
 import Text.Parsec.String (Parser)
 import Text.Printf
 import Text.Parsec.Char
-import Control.Monad (void)
+import Control.Monad 
+import qualified Control.Monad.State as S
 import Data.List (intercalate)
+import qualified Data.Map as Map
 
 data Token = TInt Int | TDouble Double | TList [Token] | TStr String |
-             TSymbol Char | TQuote Token | TPlus | TMul | TComment String deriving (Eq)
+             TSymbol String | TQuote Token | TPlus 
+             | TMul | TComment String | BO BO | SF SF | BP BP deriving (Eq)
+
+data BO = ADD | SUB | MUL | DIV | MOD | CONCAT deriving EQ
+data BP = GT | LT | EQ
+data SF = DEF | SET | GET | QUOTE | TYPEOF | CONS | CAR 
+          | CDR | COND | PRINT | READ | EVAL | EVALIN | LAMBDA
+          | MACRO | MACROEXPAND | SYMBOL
+
+newtype EvalToken = EvalToken { token :: Token }
+data EvalState = EvalState {
+                   varMap :: Map.Map String Token 
+                 , index :: Int 
+                 }
+
+-- evalREPL :: Token -> (EvalState, Token)
+-- evalRepl = undefined
 
 instance Show Token where
   show x = case x of
@@ -22,7 +39,7 @@ instance Show Token where
     TList [] -> "()"
     TList xs -> mconcat ["(", intercalate " " $ filter (not . null) $ map (\case {TComment _ -> ""; x -> show x}) xs, ")"]
     TStr s -> show s
-    TSymbol c -> c : ""
+    TSymbol name -> name
     TPlus -> "+"
     TMul -> "*"
     TComment _ -> ""
@@ -33,11 +50,12 @@ d1 = TList [TInt 1, TPlus, TStr "haha", TMul]
 
 main :: IO ()
 main = do
-  -- mapM_ print [b,c,d,e, DEF (\_ -> SYMBOL 'n')]
   loop
 
--- надо написать для каждого токена свой парсер, далее разбить свтроку по пробелам
--- и на каждый кусок натравить парсер по очереди, последним будет символ.
+loopIO :: EvalState -> Token ->  IO (EvalState, Token)
+loopIO base t = do
+  pure (base, t) 
+
 --
 parseAnyToken :: Parser Token
 parseAnyToken = choice [parseTComment, parseTPlus, parseTMul, parseTQuote, parseTNum, parseTList, parseTStr, parseTSymbol]
@@ -58,17 +76,15 @@ parseTStr = do
   void $ char '"'
   pure $ TStr str
 
-
 parseTComment :: Parser Token
 parseTComment = do
   void $ char ';'
   cmt <- many $ noneOf ";" 
   void $ char ';'
   pure $ TComment cmt
--- char '"' *> (many $ noneOf "\"" ) >>= pure . TStr
 
 parseTSymbol :: Parser Token
-parseTSymbol = alphaNum  >>= pure . TSymbol
+parseTSymbol = many1 ( noneOf ("() \n\t\"';" ++ ['0'.. '9'])) >>= pure . TSymbol
 
 parseTQuote :: Parser Token
 parseTQuote = char '\'' *> parseAnyToken >>= pure . TQuote
@@ -102,14 +118,18 @@ lexeme p = do
            whitespace
            return x
 
+readREPL :: String -> Either ParseError Token
+readREPL text = parse parseTToken "" text'
+  where 
+   txt = dropWhile (==' ') text
+   isList = (not . null) txt && length (words txt) > 1 && head txt /= '('
+   text' = if isList then '(' : txt ++ ")" else txt
 
 loop :: IO ()
 loop = do
   putStr ">>> "
   inText <- getLine
-  let isList = length (words inText) > 1
-  let inText' = if isList then '(' : inText ++ ")" else inText
-  case parse parseTToken "" inText' of
+  case readREPL inText of
     Left e -> print e
     Right p -> print p 
   loop

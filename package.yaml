@@ -50,7 +50,9 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - parsec
+    - containers
     - lisp
+    - mtl
 
 tests:
   lisp-test:
