@@ -25,8 +25,10 @@ source-repository head
 
 library
   exposed-modules:
+      Handlers.Scope
       Lib
       Parser
+      Scope
       Types
   other-modules:
       Paths_lisp

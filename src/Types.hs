@@ -9,16 +9,21 @@ data Token = TInt Int | TDouble Double | TList [Token]
              | TStr String | TNil | TPil
              | TSymbol String | TQuote Token   -- убрать потом
              | TComment String | TEvalError String
-             | BO BO | SF SF | BP BP deriving (Eq)
+             | BO BO | SF SF | BP BP deriving (Eq, Ord)
 
-data BO = ADD | SUB | MUL | DIV | MOD | CONCAT deriving (Eq, Show)
+data BO = ADD | SUB | MUL | DIV | MOD | CONCAT deriving (Eq, Show, Ord)
 
-data BP = GT' | LT' | EQ' deriving (Eq, Show)
+data BP = GT' | LT' | EQ' deriving (Eq, Show, Ord)
 
 data SF = DEF | SET | GET | QUOTE | TYPEOF | CONS | CAR 
           | CDR | COND | PRINT | READ | EVAL | EVALIN | LAMBDA
-          | MACRO | MACROEXPAND | SYMBOL deriving (Eq, Show)
+          | MACRO | MACROEXPAND | SYMBOL deriving (Eq, Show, Ord)
 
+
+type Name = Token -- TSymbol example
+type Value = Token -- TSymbol example
+type EvalError = Token
+type EvalToken = Either EvalError Value
 
 instance Show Token where
   show x = case x of
