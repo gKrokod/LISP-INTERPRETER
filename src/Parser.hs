@@ -1,9 +1,15 @@
-module Parser (readREPL) where
+module Parser (readIOREPL, readREPL) where
 
 import Types
 import Text.Parsec
 import Text.Parsec.String (Parser)
 import Control.Monad 
+
+readIOREPL :: IO (Either ParseError Token)
+readIOREPL = do
+  putStr ">>> "
+  inText <- getLine
+  pure $ readREPL inText
 
 readREPL :: String -> Either ParseError Token
 readREPL text = makeTypeFromSymbol . filterComment <$> parse parseTToken "" text'
@@ -29,12 +35,12 @@ makeTypeFromSymbol (TSymbol "++") = BO CONCAT
 
 makeTypeFromSymbol (TSymbol ">") = BP GT'
 makeTypeFromSymbol (TSymbol "<") = BP LT'
-makeTypeFromSymbol (TSymbol "==") = BP EQ'
+makeTypeFromSymbol (TSymbol "=") = BP EQ'
 
 makeTypeFromSymbol (TSymbol "def") = SF DEF
 makeTypeFromSymbol (TSymbol "set!") = SF SET
 makeTypeFromSymbol (TSymbol "get") = SF GET
-makeTypeFromSymbol (TSymbol "quote") = SF QUOTE
+makeTypeFromSymbol (TSymbol "quote") = SF QUOTE -- дублирует TQuote Token 
 makeTypeFromSymbol (TSymbol "typeof") = SF TYPEOF
 makeTypeFromSymbol (TSymbol "cons") = SF CONS
 makeTypeFromSymbol (TSymbol "car") = SF CAR
@@ -47,6 +53,9 @@ makeTypeFromSymbol (TSymbol "eval-in") = SF EVALIN
 makeTypeFromSymbol (TSymbol "lambda") = SF LAMBDA
 makeTypeFromSymbol (TSymbol "macro") = SF MACRO
 makeTypeFromSymbol (TSymbol "macroexpand") = SF MACROEXPAND
+makeTypeFromSymbol (TSymbol "nil") = TNil
+makeTypeFromSymbol (TSymbol "t") = TPil
+makeTypeFromSymbol (TList []) = TNil
 makeTypeFromSymbol (TList xs) = TList $ map makeTypeFromSymbol xs
 -- makeTypeFromSymbol (TSymbol "symbol") = SF SYMBOL  -- дублирует наверно тип TSymbol String
 makeTypeFromSymbol xs = xs

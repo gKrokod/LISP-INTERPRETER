@@ -26,6 +26,8 @@ source-repository head
 library
   exposed-modules:
       Lib
+      Parser
+      Types
   other-modules:
       Paths_lisp
   hs-source-dirs:

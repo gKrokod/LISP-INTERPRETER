@@ -3,9 +3,10 @@ module Types where
 import qualified Data.Map as Map
 import Data.List (intercalate)
 import Text.Printf
+import Data.Char (toUpper)
 
 data Token = TInt Int | TDouble Double | TList [Token] 
-             | TStr String
+             | TStr String | TNil | TPil
              | TSymbol String | TQuote Token   -- убрать потом
              | TComment String | TEvalError String
              | BO BO | SF SF | BP BP deriving (Eq)
@@ -28,8 +29,10 @@ instance Show Token where
     TList xs -> mconcat ["(", intercalate " " $ map show xs, ")"]
     -- TList xs -> mconcat ["(", intercalate " " $ filter (not . null) $ map (\case {TComment _ -> ""; x -> show x}) xs, ")"]
     TStr s -> show s
-    TSymbol name -> name
+    TSymbol name -> map toUpper name
     TEvalError err -> err
+    TNil -> "()"
+    TPil -> "T"
     BO ADD -> "+"
     BO SUB -> "-"
     BO MUL -> "*"
