@@ -1,129 +1,68 @@
 -- {-# LANGUAGE StandaloneDeriving #-}
 -- {-# LANGUAGE DerivingStrategies #-}
 -- {-# LANGUAGE DeriveAnyClass #-}
+-- {-# LANGUAGE DeriveFunctor #-}
 module Main (main) where
 
-import Text.Parsec
-import Text.Parsec.String (Parser)
-import Text.Printf
-import Text.Parsec.Char
-import Control.Monad 
-import qualified Control.Monad.State as S
-import Data.List (intercalate)
+import Parser (readREPL)
+import Types
+import  Control.Monad.State
 import qualified Data.Map as Map
+import Data.Foldable
 
-data Token = TInt Int | TDouble Double | TList [Token] | TStr String |
-             TSymbol String | TQuote Token | TPlus 
-             | TMul | TComment String | BO BO | SF SF | BP BP deriving (Eq)
+type Name = Token -- TSymbol String
+type Value = Token -- TInt, TDouble, TList, TStr, TSymbol, BP BP
 
-data BO = ADD | SUB | MUL | DIV | MOD | CONCAT deriving EQ
-data BP = GT | LT | EQ
-data SF = DEF | SET | GET | QUOTE | TYPEOF | CONS | CAR 
-          | CDR | COND | PRINT | READ | EVAL | EVALIN | LAMBDA
-          | MACRO | MACROEXPAND | SYMBOL
+newtype EvalToken = EvalToken {
+                      eToken :: Token}
+                    -- , base  :: Map.Map Name Value }
+instance Show EvalToken where
+  show = show . eToken
 
-newtype EvalToken = EvalToken { token :: Token }
-data EvalState = EvalState {
-                   varMap :: Map.Map String Token 
-                 , index :: Int 
-                 }
+type EvalState = Map.Map Name Value
+type EvalError = Token
 
--- evalREPL :: Token -> (EvalState, Token)
--- evalRepl = undefined
+evalREPL :: EvalToken -> State EvalState EvalToken
+evalREPL (EvalToken t) = do
+  case t of
+    TList xs -> case (head xs) of
+      BO ADD -> case sT (tail xs) of  --
+        Left e -> pure $ EvalToken e
+        Right v -> pure $ EvalToken v
+      _ -> error "tlist fynct"
+    t -> pure $ EvalToken t
 
-instance Show Token where
-  show x = case x of
-    TInt i -> show i
-    TDouble d -> printf "%.2f" d 
-    TQuote q -> "(quote " ++ show q ++ ")"
-    TList [] -> "()"
-    TList xs -> mconcat ["(", intercalate " " $ filter (not . null) $ map (\case {TComment _ -> ""; x -> show x}) xs, ")"]
-    TStr s -> show s
-    TSymbol name -> name
-    TPlus -> "+"
-    TMul -> "*"
-    TComment _ -> ""
-    _ -> error "token"
 
-d2 = TList []
-d1 = TList [TInt 1, TPlus, TStr "haha", TMul]
+
+-- sT :: [Token] -> Either EvalError Token
+-- sT xs = foldr f (Right 0) xs
+--   where f (TInt i) acc = TDouble $ pure (+ fromIntegral i) <*> acc
+--         f (TDouble d) acc = pure (d +) <*> acc
+--         f _ acc = Left $ TEvalError "Can't add these values"
+
+-- можно передавать разные арифметические функции + - * /
+sT :: [Token] -> Either EvalError Token
+sT xs = foldrM f (TDouble 0) xs
+  where f (TInt i) (TDouble acc) = Right $ TDouble (acc + fromIntegral i)
+        f (TDouble d) (TDouble acc) = Right $ TDouble (acc + d) 
+        f x acc = Left $ TEvalError "Can't add these values"
+
+
+-- kkk
+-- sumToken :: [Token] -> Either EvalError Token
+-- sumToken [] = 0
+-- sumToken (TInt i : xs) = fromIntegral i + sumToken xs 
+-- sumToken (TDouble d : xs) = d + sumToken xs 
+-- sumToken _ = Left $ TEvalError "Can't add these values"
+
 
 main :: IO ()
 main = do
   loop
 
-loopIO :: EvalState -> Token ->  IO (EvalState, Token)
-loopIO base t = do
-  pure (base, t) 
-
---
-parseAnyToken :: Parser Token
-parseAnyToken = choice [parseTComment, parseTPlus, parseTMul, parseTQuote, parseTNum, parseTList, parseTStr, parseTSymbol]
-
-parseTInt :: Parser Token
-parseTInt = do
-  n <- many1 digit
-  pure $ TInt $ read n 
-  -- pure $ TInt 1
-
-parseTToken :: Parser Token
-parseTToken = lexeme $ parseAnyToken
-
-parseTStr :: Parser Token
-parseTStr = do
-  void $ char '"'
-  str <- many $ noneOf "\"" 
-  void $ char '"'
-  pure $ TStr str
-
-parseTComment :: Parser Token
-parseTComment = do
-  void $ char ';'
-  cmt <- many $ noneOf ";" 
-  void $ char ';'
-  pure $ TComment cmt
-
-parseTSymbol :: Parser Token
-parseTSymbol = many1 ( noneOf ("() \n\t\"';" ++ ['0'.. '9'])) >>= pure . TSymbol
-
-parseTQuote :: Parser Token
-parseTQuote = char '\'' *> parseAnyToken >>= pure . TQuote
---
-parseTPlus :: Parser Token
-parseTPlus = char '+' *>  (pure $ TPlus) 
-
-parseTMul ::  Parser Token
-parseTMul = char '*' *>  (pure $ TMul) 
-
-parseTList :: Parser Token 
-parseTList = do
-  void $ lexeme $ char '('
-  e <- many $ lexeme $ parseAnyToken
-  void $ lexeme $ char ')'
-  return $ TList e
- 
-whitespace :: Parser ()
-whitespace = void $ many $ oneOf " \n\t"
---
---todo make for 1.0e24 form
---make for minus number
-parseTNum :: Parser Token
-parseTNum = do 
-  h <- many1 digit
-  (char '.' *> many digit >>= \t -> pure $ TDouble $ read (h ++ "." ++ t ++ "0")) <|> (pure $ TInt $ read h)
-
-lexeme :: Parser a -> Parser a
-lexeme p = do
-           x <- p
-           whitespace
-           return x
-
-readREPL :: String -> Either ParseError Token
-readREPL text = parse parseTToken "" text'
-  where 
-   txt = dropWhile (==' ') text
-   isList = (not . null) txt && length (words txt) > 1 && head txt /= '('
-   text' = if isList then '(' : txt ++ ")" else txt
+-- loopIO :: EvalState -> Token ->  IO (EvalState, Token)
+-- loopIO base g = do
+--   pure (base, t) 
 
 loop :: IO ()
 loop = do
@@ -131,5 +70,41 @@ loop = do
   inText <- getLine
   case readREPL inText of
     Left e -> print e
-    Right p -> print p 
+    Right p -> print (evalState (evalREPL (EvalToken p)) Map.empty ) 
   loop
+-- instance Show Token where
+--   show x = case x of
+--     TInt i -> show i
+--     TDouble d -> printf "%.2f" d 
+--     TQuote q -> "(quote " ++ show q ++ ")"
+--     TList [] -> "()"
+--     TList xs -> mconcat ["(", intercalate " " $ filter (not . null) $ map (\case {TComment _ -> ""; x -> show x}) xs, ")"]
+--     TStr s -> show s
+--     TSymbol name -> name
+--     BO ADD -> "+"
+--     BO SUB -> "-"
+--     BO MUL -> "*"
+--     BO DIV -> "/"
+--     BO MOD -> "mod"
+--     BO CONCAT -> "++" 
+--     BP GT' -> ">"
+--     BP LT' -> "<"
+--     BP EQ' -> "=="
+--     SF DEF        -> "def"
+--     SF SET        -> "set!"
+--     SF GET        -> "get"
+--     SF QUOTE      -> "quote"
+--     SF TYPEOF     -> "typeof"
+--     SF CONS       -> "cons"
+--     SF CAR        -> "car"
+--     SF CDR        -> "cdr"
+--     SF COND       -> "cond"
+--     SF PRINT      -> "print"
+--     SF READ       -> "read"
+--     SF EVAL       -> "eval"
+--     SF EVALIN     -> "eval-in"
+--     SF LAMBDA     -> "lambda"
+--     SF MACRO      -> "macro"
+--     SF MACROEXPAND-> "macroexpand" 
+--     TComment _ -> ""
+--     _ -> error "token show"
