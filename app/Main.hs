@@ -11,6 +11,7 @@ import qualified Data.Map as Map
 import Data.Foldable
 import qualified Handlers.Scope
 import qualified Scope
+import qualified Eval.EvalFunction
 
   --   TList xs -> case (head xs) of
   --     BO ADD -> case sT (tail xs) of  --
@@ -82,6 +83,15 @@ main = do
               Handlers.Scope.writeLog = \log -> print $ "LOG: " <> log 
             , Handlers.Scope.check = Scope.check scope
             , Handlers.Scope.update = Scope.update scope
+            , Handlers.Scope.funcBOMUL = Eval.EvalFunction.funcBOMUL
+            , Handlers.Scope.funcBOADD = Eval.EvalFunction.funcBOADD
+            , Handlers.Scope.funcBOSUB = Eval.EvalFunction.funcBOSUB
+            , Handlers.Scope.funcBODIV = Eval.EvalFunction.funcBODIV
+            , Handlers.Scope.funcBOMOD = Eval.EvalFunction.funcBOMOD
+            , Handlers.Scope.funcBOCONCAT = Eval.EvalFunction.funcBOCONCAT
+            , Handlers.Scope.funcBPGT = Eval.EvalFunction.funcBPGT
+            , Handlers.Scope.funcBPLT = Eval.EvalFunction.funcBPLT
+            , Handlers.Scope.funcBPEQ = Eval.EvalFunction.funcBPEQ
           }
   loop handle
 

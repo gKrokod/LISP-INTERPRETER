@@ -47,4 +47,3 @@ update (ScopeGlobal m) name value = do
   -- for test L.writeFile "config/base.db" (LC.pack $ showTree base')
   seq scope' (pure ())
 
-

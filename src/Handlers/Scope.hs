@@ -2,11 +2,23 @@ module Handlers.Scope where
 import Types
 import Prelude hiding (check)
 import Control.Monad
+import Data.Typeable
+import Data.List (foldl1')
+
 data Handle m = Handle
   -- {   eval :: EvalToken -> m (EvalToken) 
     { writeLog :: String -> m ()
     , check :: Name -> m (Either EvalError Value)
     , update :: Name -> Value -> m ()
+    , funcBOMUL :: Value -> Value -> Value
+    , funcBOADD :: Value -> Value -> Value
+    , funcBOSUB :: Value -> Value -> Value
+    , funcBODIV :: Value -> Value -> Value
+    , funcBOMOD :: Value -> Value -> Value
+    , funcBOCONCAT :: Value -> Value -> Value
+    , funcBPGT :: Value -> Value -> Value
+    , funcBPLT :: Value -> Value -> Value
+    , funcBPEQ :: Value -> Value -> Value
   }
 
 -- type Name = Token -- TSymbol example
@@ -31,76 +43,53 @@ eval h (Right x) =
       writeLog h $ "This isn't Token"
       pure $ Right x 
 
+funcOn :: (Token -> Token -> Token) -> EvalToken -> EvalToken -> EvalToken
+funcOn f a b = do
+  x <- a
+  y <- b
+  case f x y of
+    TEvalError m -> Left $ TEvalError m
+    token -> Right token
+
 evalList :: (Monad m) => Handle m -> EvalToken -> m (EvalToken)
 evalList h (Left x) = do
   writeLog h $ "EvalError argument list" ++ show x 
   pure $ Left x
 evalList h (Right (TList [])) = pure $ Right $ TNil
-evalList h (Right (TList (x : xs))) =
-  case x of
-    BO ADD -> pure $ fadd' (Right $ head xs) (Right $ head $ tail xs)
-      where fadd' :: EvalToken -> EvalToken -> EvalToken
-            fadd' (Left a) _ = Left a
-            fadd'  _ (Left b) = Left b
-            fadd' (Right a) (Right b) = Right $ fadd a b
-            fadd (TDouble x) (TDouble y) = TDouble (x + y)
-            fadd (TInt x) (TInt y) = TInt (x + y)
-            fadd (TDouble x) (TInt y) = TDouble (x + fromIntegral y)
-            fadd (TInt x) (TDouble y) = TDouble (fromIntegral x + y)
-            fadd (TStr s1) (TStr s2) = TStr (s1 ++ s2)
-            -- fadd (TList xs') y = fadd (evalList h xs') y
-            -- fadd x (TList ys') = fadd  x (evalList h (ys'))
-            fadd _ _ = TEvalError "Wront List to eval"  
-     -- where fadd = undefined
-     --       g = undefined
-                -- Left _ -> pure $ Left $ TEvalError ""
-                -- Right _ -> pure $ Right $ 
-      --           TEvalError s -> pure $ Left $ TEvalError s
-      --           TDouble d -> pure $ Right $ TDouble d
-      --           TInt i -> pure $ Right $ TInt i
-      --           TStr s -> pure $ Right $ TStr s
-      --           _ -> pure $ Left $ TEvalError "unknown list"
-      -- where fadd :: Token -> Token -> Token
-      --       fadd (TDouble x) (TDouble y) = TDouble (x + y)
-      --       fadd (TInt x) (TInt y) = TInt (x + y)
-      --       fadd (TDouble x) (TInt y) = TDouble (x + fromIntegral y)
-      --       fadd (TInt x) (TDouble y) = TDouble (fromIntegral x + y)
-      --       fadd (TStr s1) (TStr s2) = TStr (s1 ++ s2)
-      --       fadd (TList xs') y = fadd (evalList h xs') y
-      --       fadd x (TList ys') = fadd  x (evalList h (ys'))
-      --       fadd _ _ = TEvalError "Wront List to eval"  
-            
-    BO SUB -> undefined
-    BO MUL -> undefined
-    BO DIV -> undefined
-    BO MOD -> undefined
-    BO CONCAT -> undefined
-    BP GT' -> undefined
-    BP LT' -> undefined
-    BP EQ' -> undefined
+evalList h (Right (TList (func : xs))) =
+  case func of
+    BO MUL -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      -- writeLog h $ (show (typeOf xs'))
+      pure $ foldl1' (funcOn (funcBOMUL h))  xs'
+    BO ADD -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      pure $ foldl1' (funcOn (funcBOADD h))  xs'
+    BO SUB -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      pure $ foldl1' (funcOn (funcBOSUB h))  xs'
+    BO DIV -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      pure $ foldl1' (funcOn (funcBODIV h))  xs'
+    BO MOD -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      pure $ foldl1' (funcOn (funcBOMOD h))  xs'
+    BO CONCAT -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      pure $ foldl1' (funcOn (funcBOCONCAT h))  xs'
+    BP GT' -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      pure $ foldl1' (funcOn (funcBPGT h)) xs'
+    BP LT' -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      pure $ foldl1' (funcOn (funcBPLT h)) xs'
+    BP EQ' -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      pure $ foldl1' (funcOn (funcBPEQ h)) xs'
     _ -> do
       writeLog h "This isn't eval list"
       pure $ Left $ TEvalError "This isn't eval list"
  
--- funcBO  :: BO -> [Token] -> Either EvalError Token
--- funcBO ADD = funcBO' (+)
--- funcBO SUB = funcBO' (-)
--- funcBO MUL = funcBO' (*)
--- funcBO DIV = funcBO' (/)
--- funcBO MOD = funcBO' (\x y -> fromIntegral $ floor x `mod` floor y)
--- funcBO CONCAT = funcBO' (+)
---
--- funcBO'  :: (Double -> Double -> Double) -> [Token] -> Either EvalError Token
--- funcBO' g (xs) = (TDouble . foldl1 g) <$> mapM (\case
---                   TDouble x -> Right x
---                   TInt i -> Right $ fromIntegral i
---                   TList xs' -> do 
---                     (a, EvalToken b) <- evalREPL (Map.empty) (EvalToken $ TList xs')
---                     case b of
---                       -- TInt x -> Right $ fromIntegral x   -- почему-то работает, однако и без этой строки! что за гавноkk
---                       TDouble x -> Right $  x
---                       _ -> Left $ TEvalError $ "Can't eval these numbers' values"
---                   _ -> Left $ TEvalError $ "Can't eval these numbers' values") xs
 evalInt :: (Monad m) => Handle m -> Token -> m (EvalToken)
 evalInt h (TInt i) = if i > 10000
   then do
