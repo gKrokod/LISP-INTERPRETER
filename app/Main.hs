@@ -12,9 +12,6 @@ import Data.Foldable
 import qualified Handlers.Scope
 import qualified Scope
 
--- evalIOREPL :: EvalState -> EvalToken -> IO (Either EvalError EvalDo) 
--- evalIOREPL base token = pure $ evalREPL base token
-  -- case t of
   --   TList xs -> case (head xs) of
   --     BO ADD -> case sT (tail xs) of  --
   --       Left e -> pure $ (base , EvalToken e)
@@ -82,8 +79,8 @@ main = do
   let handle =
         Handlers.Scope.Handle
           {   
-              Handlers.Scope.writeLog = \log -> print log 
-            , Handlers.Scope.read = Scope.read scope
+              Handlers.Scope.writeLog = \log -> print $ "LOG: " <> log 
+            , Handlers.Scope.check = Scope.check scope
             , Handlers.Scope.update = Scope.update scope
           }
   loop handle
@@ -95,9 +92,11 @@ loop h = do
   case msg of
     Left e -> print e
     Right p -> do 
+      -- newtok <- Handlers.Scope.evalSymbol h (Right p)
       newtok <- Handlers.Scope.eval h (Right p)
+      print "Result Eval: "
       print newtok
-      print $ "iz main"
+      print $ "Result Print:"
       print p 
       -- eEval <- evalIOREPL Map.empty (EvalToken p) 
       -- case eEval of

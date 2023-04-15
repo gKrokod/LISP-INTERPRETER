@@ -2,7 +2,7 @@ module Scope where
 
 import Types
 
-import Control.Concurrent (MVar, newMVar, putMVar, takeMVar, threadDelay)
+import Control.Concurrent (MVar, newMVar, putMVar, takeMVar)
 import qualified Data.Map.Strict as Map
 import Types
 
@@ -21,7 +21,7 @@ newtype ScopeGlobal = ScopeGlobal (MVar ScopeMap)
 -- data Handle m = Handle
 --   -- {   eval :: EvalToken -> m (EvalToken) 
 --     { writeLog :: String -> m ()
---     , read :: Name -> m (EvalToken)
+--     , check :: Name -> m (EvalToken)
 --     , update :: Name -> Value -> m ()
 --   }
 
@@ -30,12 +30,12 @@ newScope = do
   m <- newMVar $ Map.fromList [(TSymbol "pi", TDouble 3.14)] 
   pure $ ScopeGlobal m
 
-read :: ScopeGlobal -> Name -> IO (EvalToken)
-read (ScopeGlobal m) name = do
+check :: ScopeGlobal -> Name -> IO (EvalToken)
+check (ScopeGlobal m) name = do
   scope <- takeMVar m
   putMVar m scope
   case Map.lookup name scope of
-    Nothing -> pure $ Left $ TEvalError (show name ++ " does not exist")
+    Nothing -> pure $ Left $ TEvalError (show name ++ " does not exist in scope")
     Just v -> pure $ Right $ v
   
 update :: ScopeGlobal -> Name -> Value -> IO ()
