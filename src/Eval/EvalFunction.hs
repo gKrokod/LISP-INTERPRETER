@@ -70,3 +70,18 @@ funcBPLT = flip funcBPGT
 
 funcBPEQ :: Token -> Token -> Token
 funcBPEQ x y = if x == y then TPil else TNil 
+
+funcSFTYPEOF :: Token -> Token
+funcSFTYPEOF (TDouble _) = TStr "Double" 
+funcSFTYPEOF (TInt _) = TStr "Integer" 
+funcSFTYPEOF (TStr _) = TStr "String" 
+funcSFTYPEOF (TList _) = TStr "List" 
+funcSFTYPEOF (TNil) = TStr "Bool" 
+funcSFTYPEOF (TPil) = TStr "Bool" 
+funcSFTYPEOF (TSymbol _) = TStr "Symbol" 
+funcSFTYPEOF (TEvalError _) = TStr "Error" 
+funcSFTYPEOF (BO _) = TStr "BO" 
+funcSFTYPEOF (SF _) = TStr "SF" 
+funcSFTYPEOF (BP _) = TStr "BP" 
+
+

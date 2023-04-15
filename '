@@ -52,11 +52,11 @@ funcOn f a b = do
     TEvalError m -> Left $ TEvalError m
     token -> Right token
 
--- For Function with 1 parametr - SF
+-- For Function with 1 parametr
 funcDuo :: (Token -> Token) -> EvalToken -> EvalToken
 funcDuo f a = do
   x <- a
-  case f x of
+  case f a of
     TEvalError m -> Left $ TEvalError m
     token -> Right token
 
@@ -112,11 +112,15 @@ evalList h (Right (TList (func : xs))) =
     SF TYPEOF -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
       case xs' of
-        [x] -> do
-          pure $ funcDuo (funcSFTYPEOF h) x
-        otherwise -> do
-          writeLog h "This isn't eval list for typeof"
+        [] -> do
+          writeLog h "This isn't eval list"
           pure $ Left $ TEvalError "This isn't eval list"
+        (x : _) -> do
+          case x of
+            Left e -> pure $ Left e 
+            Right token -> pure
+           
+          pure $ Right $ funcSFTYPEOF h x''
     _ -> do
       writeLog h "This isn't eval list"
       pure $ Left $ TEvalError "This isn't eval list"

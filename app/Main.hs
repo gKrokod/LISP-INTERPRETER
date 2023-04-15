@@ -92,6 +92,7 @@ main = do
             , Handlers.Scope.funcBPGT = Eval.EvalFunction.funcBPGT
             , Handlers.Scope.funcBPLT = Eval.EvalFunction.funcBPLT
             , Handlers.Scope.funcBPEQ = Eval.EvalFunction.funcBPEQ
+            , Handlers.Scope.funcSFTYPEOF = Eval.EvalFunction.funcSFTYPEOF
           }
   loop handle
 
