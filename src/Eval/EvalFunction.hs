@@ -83,4 +83,3 @@ funcSFTYPEOF (BO _) = TStr "BO"
 funcSFTYPEOF (SF _) = TStr "SF" 
 funcSFTYPEOF (BP _) = TStr "BP" 
 
-

@@ -33,32 +33,17 @@ eval h (Left x) = do
   pure $ Left x
 eval h (Right x) = 
   case x of  
-    TSymbol _ -> evalSymbol h x 
-    TStr _ -> evalStr h x
-    TInt _ -> evalInt h x
-    TDouble _ -> evalDouble h x
-    TNil -> evalNil h x
-    TPil -> evalPil h x
-    TList xs -> evalList h (Right x)
+    TStr _ -> withEval h evalStr x
+    TInt _ -> withEval h evalInt x
+    TDouble _ -> withEval h  evalDouble x
+    TNil -> withEval h evalNil x
+    TPil -> withEval h evalPil x
+    TSymbol _ -> withEval h evalSymbol x 
+    TList xs -> withEvalList h evalList x
     _ -> do
-      writeLog h $ "This isn't Token"
+      writeLog h $ "This isn't Token for eval"
       pure $ Right x 
 
-funcOn :: (Token -> Token -> Token) -> EvalToken -> EvalToken -> EvalToken
-funcOn f a b = do
-  x <- a
-  y <- b
-  case f x y of
-    TEvalError m -> Left $ TEvalError m
-    token -> Right token
-
--- For Function with 1 parametr - SF
-funcDuo :: (Token -> Token) -> EvalToken -> EvalToken
-funcDuo f a = do
-  x <- a
-  case f x of
-    TEvalError m -> Left $ TEvalError m
-    token -> Right token
 
 -- evalTypeOf :: (Monad m) => Handle m -> Token -> m (EvalToken)
 -- evalTypeOf h (SF TYPEOF) = if i > 10000
@@ -67,63 +52,77 @@ funcDuo f a = do
 --     pure $ Left $ TEvalError "Very Big Int man!"
 --   else pure $ Right $ TInt i
 
--- evalInt' :: (Monad m) => Handle m -> Token -> m (EvalToken)
--- evalInt' h (TInt i) = 
---   if i > 10000
---   then do
---     writeLog h $ "Very Big Int man!"
---     pure $ Left $ TEvalError "Very Big Int man!"
---   else pure $ Right $ TInt i
+withEval :: (Monad m) => Handle m -> (Handle m -> Token -> m (EvalToken)) -> Token -> m (EvalToken)
+withEval h funcEval token = do
+  value <- check h token 
+  case value of
+    Right v -> do
+       writeLog h $ ("exist in scope " ++ show v )
+       pure $ Right v 
+    Left _ -> case token of 
+      (TEvalError e) -> pure $ Left $ TEvalError e
+      _ -> funcEval h token 
+
 
 evalInt :: (Monad m) => Handle m -> Token -> m (EvalToken)
-evalInt h (TInt i) = do
-  value <- check h (TInt i)
-  case value of
-    Left e -> do
+evalInt h (TInt i) = 
 	  if i > 10000
 	  then do
 		writeLog h $ "Very Big Int man!"
 		pure $ Left $ TEvalError "Very Big Int man!"
 	  else pure $ Right $ TInt i
+
+
+evalDouble :: (Monad m) => Handle m -> Token -> m (EvalToken)
+evalDouble h double = pure $ Right $ double
+
+
+withEvalList :: (Monad m) => Handle m -> (Handle m -> EvalToken -> m (EvalToken)) -> Token -> m (EvalToken)
+withEvalList h funcEval token = do
+  value <- check h token 
+  case value of
     Right v -> do
-       writeLog h $ ("exist in scope " ++ show v )
-       pure $ Right v 
+       writeLog h $ ("exist List in scope " ++ show v )
+       pure $ Right v
+    Left _ -> case token of 
+      (TEvalError e) -> pure $ Left $ TEvalError e
+      _ -> funcEval h (Right token)
 
 evalList :: (Monad m) => Handle m -> EvalToken -> m (EvalToken)
-evalList h (Left x) = do
-  writeLog h $ "EvalError argument list" ++ show x 
-  pure $ Left x
+-- evalList h (Left x) = do
+--   writeLog h $ "EvalError argument list" ++ show x 
+--   pure $ Left x
 evalList h (Right (TList [])) = pure $ Right $ TNil
 evalList h (Right (TList (func : xs))) =
   case func of
     BO MUL -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
       -- writeLog h $ (show (typeOf xs'))
-      pure $ foldl1' (funcOn (funcBOMUL h))  xs'
+      eval h $ foldl1' (funcOn (funcBOMUL h))  xs'
     BO ADD -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure $ foldl1' (funcOn (funcBOADD h))  xs'
+      eval h $ foldl1' (funcOn (funcBOADD h))  xs'
     BO SUB -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure $ foldl1' (funcOn (funcBOSUB h))  xs'
+      eval h $ foldl1' (funcOn (funcBOSUB h))  xs'
     BO DIV -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure $ foldl1' (funcOn (funcBODIV h))  xs'
+      eval h $ foldl1' (funcOn (funcBODIV h))  xs'
     BO MOD -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure $ foldl1' (funcOn (funcBOMOD h))  xs'
+      eval h $ foldl1' (funcOn (funcBOMOD h))  xs'
     BO CONCAT -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure $ foldl1' (funcOn (funcBOCONCAT h))  xs'
+      eval h $ foldl1' (funcOn (funcBOCONCAT h))  xs'
     BP GT' -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure $ foldl1' (funcOn (funcBPGT h)) xs'
+      eval h $ foldl1' (funcOn (funcBPGT h)) xs'
     BP LT' -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure $ foldl1' (funcOn (funcBPLT h)) xs'
+      eval h $ foldl1' (funcOn (funcBPLT h)) xs'
     BP EQ' -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure $ foldl1' (funcOn (funcBPEQ h)) xs'
+      eval h $ foldl1' (funcOn (funcBPEQ h)) xs'
     SF TYPEOF -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
       case xs' of
@@ -133,25 +132,60 @@ evalList h (Right (TList (func : xs))) =
           writeLog h "This isn't eval list for typeof"
           pure $ Left $ TEvalError "This isn't eval list"
     SF DEF -> do
-      xs' <- mapM (eval h) (map Right (xs)) -- :: [EvalToken]
+      xs' <- mapM (eval h) (map Right (tail xs)) -- :: [EvalToken]
       case xs' of
-        [name, value] -> do
-          case (name, value) of
-            (Right name', Right value') -> do
-			  update h name' value' 
-			  pure $ Right $ TNil
-            _ -> do 
-              writeLog h "This isn't eval list argument for def"
-              pure $ Left $ TEvalError "This isn't eval list"
-        otherwise -> do
+        [Right value] -> do
+          update h (head xs) value
+          writeLog h (show (head xs) ++ " UPDATE TO " ++ show value )
+          pure $ Right $ TNil
+        _ -> do
           writeLog h "This isn't eval list for def"
-          pure $ Left $ TEvalError "This isn't eval list"
+          pure $ Left $ TEvalError "This isn't eval list for def"
+    SF SET -> do
+      xs' <- mapM (eval h) (map Right (tail xs)) -- :: [EvalToken]
+      case xs' of
+        [Right newValue] -> do
+          isExist <- check h (head xs) 
+          case isExist of
+            Left e -> do
+              writeLog h ("This " ++ show (head xs) ++ " does not exitst in scope")
+              pure $ Left $ TEvalError ("This " ++ show (head xs) ++ " does not exitst in scope")
+            Right _ -> do 
+              update h (head xs) newValue
+              writeLog h (show (head xs) ++ " UPDATE TO " ++ show newValue )
+              pure $ Right $ TNil
+    SF GET -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      case xs' of
+        [Right name] -> do
+          isExist <- check h (head xs) 
+          case isExist of
+            Left e -> do
+              writeLog h ("This " ++ show (head xs) ++ " does not exitst in scope")
+              pure $ Left $ TEvalError ("This " ++ show (head xs) ++ " does not exitst in scope")
+            Right value -> do 
+              writeLog h (show name ++ " fromScope " show value) 
+              pure $ Right $ value 
+        _ -> do
+          writeLog h "This isn't eval list for get"
+          pure $ Left $ TEvalError "This isn't eval list for get"
+    SF SET -> do
+      xs' <- mapM (eval h) (map Right (tail xs)) -- :: [EvalToken]
+      case xs' of
+        [Right newValue] -> do
+          isExist <- check h (head xs) 
+          case isExist of
+            Left e -> do
+              writeLog h ("This " ++ show (head xs) ++ " does not exitst in scope")
+              pure $ Left $ TEvalError ("This " ++ show (head xs) ++ " does not exitst in scope")
+            Right _ -> do 
+              update h (head xs) newValue
+              writeLog h (show (head xs) ++ " UPDATE TO " ++ show newValue )
+              pure $ Right $ TNil
     _ -> do
       writeLog h "This isn't eval list"
       pure $ Left $ TEvalError "This isn't eval list"
 
-evalDouble :: (Monad m) => Handle m -> Token -> m (EvalToken)
-evalDouble h double = pure $ Right $ double
 
 evalNil :: (Monad m) => Handle m -> Token -> m (EvalToken)
 evalNil h false = pure $ Right $ false
@@ -159,27 +193,23 @@ evalPil :: (Monad m) => Handle m -> Token -> m (EvalToken)
 evalPil h true = pure $ Right $ true
 
 evalSymbol :: (Monad m) => Handle m -> Token -> m (EvalToken)
-evalSymbol h name = do
-  value <- check h name
-  case value of
-    Left e -> do
-	  writeLog h (show e)  
-	  pure $ Right $ name 
-    Right v -> do
-       writeLog h $ ("exist in scope " ++ show v )
-       pure $ Right v 
+evalSymbol h name = pure $ Right name
+
 evalStr :: (Monad m) => Handle m -> Token -> m (EvalToken)
 evalStr h string = pure $ Right $ string
--- evalSymbol :: (Monad m) => Handle m -> EvalToken -> m (EvalToken)
--- evalSymbol h (Left x) = do
---   writeLog h $ "EvalError argument " ++ show x 
---   pure $ Left x -- $ TEvalError "EvalError argument " 
--- evalSymbol h (Right (TSymbol name)) = do
 --   value <- check h (TSymbol name)
 --   case value of
---     Left e -> do
--- 	  writeLog h (show e)  
--- 	  pure $ Right $ TSymbol name 
---     Right v -> do
---        writeLog h $ ("exist in scope " ++ show v )
---        pure $ Right v 
+funcOn :: (Token -> Token -> Token) -> EvalToken -> EvalToken -> EvalToken
+funcOn f a b = do
+  x <- a
+  y <- b
+  case f x y of
+    TEvalError m -> Left $ TEvalError m
+    token -> Right token
+-- For Function with 1 parametr - SF
+funcDuo :: (Token -> Token) -> EvalToken -> EvalToken
+funcDuo f a = do
+  x <- a
+  case f x of
+    TEvalError m -> Left $ TEvalError m
+    token -> Right token
