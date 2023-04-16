@@ -67,12 +67,27 @@ funcDuo f a = do
 --     pure $ Left $ TEvalError "Very Big Int man!"
 --   else pure $ Right $ TInt i
 
+-- evalInt' :: (Monad m) => Handle m -> Token -> m (EvalToken)
+-- evalInt' h (TInt i) = 
+--   if i > 10000
+--   then do
+--     writeLog h $ "Very Big Int man!"
+--     pure $ Left $ TEvalError "Very Big Int man!"
+--   else pure $ Right $ TInt i
+
 evalInt :: (Monad m) => Handle m -> Token -> m (EvalToken)
-evalInt h (TInt i) = if i > 10000
-  then do
-    writeLog h $ "Very Big Int man!"
-    pure $ Left $ TEvalError "Very Big Int man!"
-  else pure $ Right $ TInt i
+evalInt h (TInt i) = do
+  value <- check h (TInt i)
+  case value of
+    Left e -> do
+	  if i > 10000
+	  then do
+		writeLog h $ "Very Big Int man!"
+		pure $ Left $ TEvalError "Very Big Int man!"
+	  else pure $ Right $ TInt i
+    Right v -> do
+       writeLog h $ ("exist in scope " ++ show v )
+       pure $ Right v 
 
 evalList :: (Monad m) => Handle m -> EvalToken -> m (EvalToken)
 evalList h (Left x) = do
@@ -117,10 +132,23 @@ evalList h (Right (TList (func : xs))) =
         otherwise -> do
           writeLog h "This isn't eval list for typeof"
           pure $ Left $ TEvalError "This isn't eval list"
+    SF DEF -> do
+      xs' <- mapM (eval h) (map Right (xs)) -- :: [EvalToken]
+      case xs' of
+        [name, value] -> do
+          case (name, value) of
+            (Right name', Right value') -> do
+			  update h name' value' 
+			  pure $ Right $ TNil
+            _ -> do 
+              writeLog h "This isn't eval list argument for def"
+              pure $ Left $ TEvalError "This isn't eval list"
+        otherwise -> do
+          writeLog h "This isn't eval list for def"
+          pure $ Left $ TEvalError "This isn't eval list"
     _ -> do
       writeLog h "This isn't eval list"
       pure $ Left $ TEvalError "This isn't eval list"
- 
 
 evalDouble :: (Monad m) => Handle m -> Token -> m (EvalToken)
 evalDouble h double = pure $ Right $ double

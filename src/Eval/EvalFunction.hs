@@ -12,7 +12,6 @@ funcBOMUL (TPil) x = x-- True * Value = Value
 funcBOMUL x (TPil) = x
 funcBOMUL _ _ = TEvalError "Wrong List to mul"  
               
-
 funcBOADD :: Token -> Token -> Token
 funcBOADD (TDouble x) (TDouble y) = TDouble (x + y)
 funcBOADD (TInt x) (TInt y) = TInt (x + y)
@@ -36,7 +35,7 @@ funcBOSUB _ _ = TEvalError "Wrong List to sub"
 
 funcBODIV :: Token -> Token -> Token
 funcBODIV (TDouble x) (TDouble y) = TDouble (x / y)
-funcBODIV (TInt x) (TInt y) = TDouble $ ((/) `on` fromIntegral) x  y
+funcBODIV (TInt x) (TInt y) = TInt (x `div` y) --TDouble $ ((/) `on` fromIntegral) x  y
 funcBODIV (TDouble x) (TInt y) = TDouble (x / fromIntegral y)
 funcBODIV (TInt x) (TDouble y) = TDouble (fromIntegral x / y)
 -- funcBODIV (TPil) x = x-- True * Value = Value

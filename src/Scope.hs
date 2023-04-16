@@ -41,9 +41,7 @@ check (ScopeGlobal m) name = do
 update :: ScopeGlobal -> Name -> Value -> IO ()
 update (ScopeGlobal m) name value = do
   scope <- takeMVar m
-  putMVar m scope
   let scope' = Map.insert name value scope
   putMVar m scope'
   -- for test L.writeFile "config/base.db" (LC.pack $ showTree base')
   seq scope' (pure ())
-
