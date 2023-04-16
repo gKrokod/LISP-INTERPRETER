@@ -33,17 +33,28 @@ eval h (Left x) = do
   pure $ Left x
 eval h (Right x) = 
   case x of  
+    TQuote token -> do
+       -- writeLog h $ "QUOTE HERE " ++ show token 
+       evalQuote token
     TStr _ -> withEval h evalStr x
     TInt _ -> withEval h evalInt x
     TDouble _ -> withEval h  evalDouble x
     TNil -> withEval h evalNil x
     TPil -> withEval h evalPil x
     TSymbol _ -> withEval h evalSymbol x 
-    TList xs -> withEvalList h evalList x
+    TList xs -> do
+      case xs of
+        ((TQuote token) : _) -> evalQuote token
+        xs' -> do
+          -- writeLog h $ "LIST HERE" ++ show xs' 
+          withEvalList h evalList x
     _ -> do
       writeLog h $ "This isn't Token for eval"
       pure $ Right x 
 
+evalQuote :: (Monad m) => Token -> m (EvalToken)
+evalQuote (TEvalError e) = pure $ Left $ TEvalError e
+evalQuote token = pure $ Right token
 
 -- evalTypeOf :: (Monad m) => Handle m -> Token -> m (EvalToken)
 -- evalTypeOf h (SF TYPEOF) = if i > 10000
@@ -164,27 +175,27 @@ evalList h (Right (TList (func : xs))) =
               writeLog h ("This " ++ show (head xs) ++ " does not exitst in scope")
               pure $ Left $ TEvalError ("This " ++ show (head xs) ++ " does not exitst in scope")
             Right value -> do 
-              writeLog h (show name ++ " fromScope " show value) 
+              writeLog h (show name ++ " fromScope " ++ show value) 
               pure $ Right $ value 
         _ -> do
           writeLog h "This isn't eval list for get"
           pure $ Left $ TEvalError "This isn't eval list for get"
-    SF SET -> do
-      xs' <- mapM (eval h) (map Right (tail xs)) -- :: [EvalToken]
-      case xs' of
-        [Right newValue] -> do
-          isExist <- check h (head xs) 
-          case isExist of
-            Left e -> do
-              writeLog h ("This " ++ show (head xs) ++ " does not exitst in scope")
-              pure $ Left $ TEvalError ("This " ++ show (head xs) ++ " does not exitst in scope")
-            Right _ -> do 
-              update h (head xs) newValue
-              writeLog h (show (head xs) ++ " UPDATE TO " ++ show newValue )
-              pure $ Right $ TNil
+    -- SF SET -> do
+    --   xs' <- mapM (eval h) (map Right (tail xs)) -- :: [EvalToken]
+    --   case xs' of
+    --     [Right newValue] -> do
+    --       isExist <- check h (head xs) 
+    --       case isExist of
+    --         Left e -> do
+    --           writeLog h ("This " ++ show (head xs) ++ " does not exitst in scope")
+    --           pure $ Left $ TEvalError ("This " ++ show (head xs) ++ " does not exitst in scope")
+    --         Right _ -> do 
+    --           update h (head xs) newValue
+    --           writeLog h (show (head xs) ++ " UPDATE TO " ++ show newValue )
+    --           pure $ Right $ TNil
     _ -> do
-      writeLog h "This isn't eval list"
-      pure $ Left $ TEvalError "This isn't eval list"
+      writeLog h "This isn't eval list case error "
+      pure $ Left $ TEvalError "This isn't eval list case error"
 
 
 evalNil :: (Monad m) => Handle m -> Token -> m (EvalToken)

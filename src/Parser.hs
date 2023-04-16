@@ -40,7 +40,7 @@ makeTypeFromSymbol (TSymbol "=") = BP EQ'
 makeTypeFromSymbol (TSymbol "def") = SF DEF
 makeTypeFromSymbol (TSymbol "set!") = SF SET
 makeTypeFromSymbol (TSymbol "get") = SF GET
-makeTypeFromSymbol (TSymbol "quote") = SF QUOTE -- дублирует TQuote Token 
+-- makeTypeFromSymbol (TSymbol "quote") = SF QUOTE -- дублирует TQuote Token 
 makeTypeFromSymbol (TSymbol "typeof") = SF TYPEOF
 makeTypeFromSymbol (TSymbol "cons") = SF CONS
 makeTypeFromSymbol (TSymbol "car") = SF CAR
