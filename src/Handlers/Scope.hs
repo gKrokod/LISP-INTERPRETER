@@ -20,6 +20,8 @@ data Handle m = Handle
     , funcBPLT :: Value -> Value -> Value
     , funcBPEQ :: Value -> Value -> Value
     , funcSFTYPEOF :: Value -> Value
+    , hPrint :: EvalToken -> m ()
+    , hRead :: m (EvalToken)
   }
 
 -- type Name = Token -- TSymbol example
@@ -33,13 +35,6 @@ eval h (Left x) = do
   pure $ Left x
 eval h (Right x) = 
   case x of  
-    -- SF QUOTE -> do
-    --    writeLog h $ "QUOTE HERE SF NOT LIST "
-    --    undefined
-    -- TQuote token -> do
-    --    writeLog h $ "QUOTE HERE " ++ show token 
-    --    evalQuote token
-       -- eval h (Right $ TList [SF QUOTE, token])
     TStr _ -> withEval h evalStr x
     TInt _ -> withEval h evalInt x
     TDouble _ -> withEval h  evalDouble x
@@ -115,31 +110,31 @@ evalList h (Right (TList (func : xs))) =
       -- writeLog h $ (show (typeOf xs'))
       -- menya pure na EVAL i OBRATNO. ny lan
       -- eval h $ foldl1' (funcOn (funcBOMUL h))  xs'
-      pure h $ foldl1' (funcOn (funcBOMUL h))  xs'
+      pure $ foldl1' (funcOn (funcBOMUL h))  xs'
     BO ADD -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure h $ foldl1' (funcOn (funcBOADD h))  xs'
+      pure $ foldl1' (funcOn (funcBOADD h))  xs'
     BO SUB -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure h $ foldl1' (funcOn (funcBOSUB h))  xs'
+      pure $ foldl1' (funcOn (funcBOSUB h))  xs'
     BO DIV -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure h $ foldl1' (funcOn (funcBODIV h))  xs'
+      pure $ foldl1' (funcOn (funcBODIV h))  xs'
     BO MOD -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure h $ foldl1' (funcOn (funcBOMOD h))  xs'
+      pure $ foldl1' (funcOn (funcBOMOD h))  xs'
     BO CONCAT -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure h $ foldl1' (funcOn (funcBOCONCAT h))  xs'
+      pure $ foldl1' (funcOn (funcBOCONCAT h))  xs'
     BP GT' -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure h $ foldl1' (funcOn (funcBPGT h)) xs'
+      pure $ foldl1' (funcOn (funcBPGT h)) xs'
     BP LT' -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure h $ foldl1' (funcOn (funcBPLT h)) xs'
+      pure $ foldl1' (funcOn (funcBPLT h)) xs'
     BP EQ' -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      pure h $ foldl1' (funcOn (funcBPEQ h)) xs'
+      pure $ foldl1' (funcOn (funcBPEQ h)) xs'
     SF TYPEOF -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
       case xs' of
@@ -241,10 +236,40 @@ evalList h (Right (TList (func : xs))) =
         _ -> do
           writeLog h "This isn't eval list for IF"
           pure $ Left $ TEvalError "This isn't eval list for IF"
-    r -> do
-      writeLog h $ "This isn't eval list case error " ++ show r
+    SF PRINT -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      case xs' of
+        [x] -> do
+          hPrint h x
+          pure $ Right $ TNil 
+        otherwise -> do
+          writeLog h "This isn't eval list for print"
+          pure $ Left $ TEvalError "This isn't eval list for print"
+    SF READ -> do
+      if null xs then 
+        eval h =<< hRead h
+      else do
+        writeLog h "This isn't eval list for read"
+        pure $ Left $ TEvalError "This isn't eval list for read"
+    another -> do
+      writeLog h $ "This isn't eval list - case error " ++ show another
+      -- xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      -- let xss = sequence xs'
+      -- case xss of
+      --   Left e -> do
+      --     writeLog h $ "This isn't eval list for another" ++ show e
+      --     pure $ Left $ TEvalError "This isn't eval list for another"
+      --   Right rs -> do
+      --     writeLog h $ "This isn't eval list for another" ++ show rs
+      --     pure $ Right $ TList rs
       pure $ Left $ TEvalError "This isn't eval list case error"
 
+    -- SF QUOTE -> do
+    --   case (map Right xs) of
+    --     [value] -> do
+    --       writeLog h "Quote  = don't eval"
+    --       pure $ value
+-- evalList h (Right (TList (func : xs))) =
 
 evalNil :: (Monad m) => Handle m -> Token -> m (EvalToken)
 evalNil h false = pure $ Right $ false

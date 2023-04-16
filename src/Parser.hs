@@ -1,9 +1,16 @@
-module Parser (readIOREPL, readREPL) where
+module Parser (readIOREPL, readREPL, sfRead) where
 
 import Types
 import Text.Parsec
 import Text.Parsec.String (Parser)
 import Control.Monad 
+
+sfRead :: IO (EvalToken)
+sfRead = do
+  msg <- readIOREPL
+  case msg of
+    Left e -> pure $ Left $ TEvalError $ "can't read this" ++ show e
+    Right p -> pure $ Right p 
 
 readIOREPL :: IO (Either ParseError Token)
 readIOREPL = do

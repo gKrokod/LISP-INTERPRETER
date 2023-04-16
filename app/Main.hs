@@ -4,7 +4,7 @@
 -- {-# LANGUAGE DeriveFunctor #-}
 module Main (main) where
 
-import Parser (readIOREPL, readREPL)
+import Parser (readIOREPL, readREPL, sfRead)
 import Types
 import Control.Monad.State
 import qualified Data.Map as Map
@@ -93,6 +93,8 @@ main = do
             , Handlers.Scope.funcBPLT = Eval.EvalFunction.funcBPLT
             , Handlers.Scope.funcBPEQ = Eval.EvalFunction.funcBPEQ
             , Handlers.Scope.funcSFTYPEOF = Eval.EvalFunction.funcSFTYPEOF
+            , Handlers.Scope.hPrint = putStrLn . Eval.EvalFunction.sfPrint
+            , Handlers.Scope.hRead = sfRead
           }
   loop handle
 
