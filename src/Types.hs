@@ -16,7 +16,7 @@ data BO = ADD | SUB | MUL | DIV | MOD | CONCAT deriving (Eq, Show, Ord)
 data BP = GT' | LT' | EQ' deriving (Eq, Show, Ord)
 
 data SF = DEF | SET | GET | QUOTE | TYPEOF | CONS | CAR 
-          | CDR | COND | PRINT | READ | EVAL | EVALIN | LAMBDA
+          | CDR | COND | IF | PRINT | READ | EVAL | EVALIN | LAMBDA
           | MACRO | MACROEXPAND | SYMBOL deriving (Eq, Show, Ord)
 
 
@@ -29,7 +29,7 @@ instance Show Token where
   show x = case x of
     TInt i -> show i
     TDouble d -> printf "%.2f" d 
-    TQuote q -> "(quote " ++ show q ++ ")"
+    -- TQuote q -> "(tquote!!!! " ++ show q ++ ")"
     TList [] -> "()"
     TList xs -> mconcat ["(", intercalate " " $ map show xs, ")"]
     -- TList xs -> mconcat ["(", intercalate " " $ filter (not . null) $ map (\case {TComment _ -> ""; x -> show x}) xs, ")"]
@@ -56,6 +56,7 @@ instance Show Token where
     SF CAR        -> "car"
     SF CDR        -> "cdr"
     SF COND       -> "cond"
+    SF IF         -> "if"
     SF PRINT      -> "print"
     SF READ       -> "read"
     SF EVAL       -> "eval"

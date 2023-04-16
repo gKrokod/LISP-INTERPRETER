@@ -33,21 +33,25 @@ eval h (Left x) = do
   pure $ Left x
 eval h (Right x) = 
   case x of  
-    TQuote token -> do
-       -- writeLog h $ "QUOTE HERE " ++ show token 
-       evalQuote token
+    -- SF QUOTE -> do
+    --    writeLog h $ "QUOTE HERE SF NOT LIST "
+    --    undefined
+    -- TQuote token -> do
+    --    writeLog h $ "QUOTE HERE " ++ show token 
+    --    evalQuote token
+       -- eval h (Right $ TList [SF QUOTE, token])
     TStr _ -> withEval h evalStr x
     TInt _ -> withEval h evalInt x
     TDouble _ -> withEval h  evalDouble x
     TNil -> withEval h evalNil x
     TPil -> withEval h evalPil x
     TSymbol _ -> withEval h evalSymbol x 
-    TList xs -> do
-      case xs of
-        ((TQuote token) : _) -> evalQuote token
-        xs' -> do
-          -- writeLog h $ "LIST HERE" ++ show xs' 
-          withEvalList h evalList x
+    TList xs ->  withEvalList h evalList x--do
+      -- case xs of
+      --   ((TQuote token) : _) -> evalQuote token
+      --   xs' -> do
+      --     -- writeLog h $ "LIST HERE" ++ show xs' 
+          -- withEvalList h evalList x
     _ -> do
       writeLog h $ "This isn't Token for eval"
       pure $ Right x 
@@ -109,31 +113,33 @@ evalList h (Right (TList (func : xs))) =
     BO MUL -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
       -- writeLog h $ (show (typeOf xs'))
-      eval h $ foldl1' (funcOn (funcBOMUL h))  xs'
+      -- menya pure na EVAL i OBRATNO. ny lan
+      -- eval h $ foldl1' (funcOn (funcBOMUL h))  xs'
+      pure h $ foldl1' (funcOn (funcBOMUL h))  xs'
     BO ADD -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      eval h $ foldl1' (funcOn (funcBOADD h))  xs'
+      pure h $ foldl1' (funcOn (funcBOADD h))  xs'
     BO SUB -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      eval h $ foldl1' (funcOn (funcBOSUB h))  xs'
+      pure h $ foldl1' (funcOn (funcBOSUB h))  xs'
     BO DIV -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      eval h $ foldl1' (funcOn (funcBODIV h))  xs'
+      pure h $ foldl1' (funcOn (funcBODIV h))  xs'
     BO MOD -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      eval h $ foldl1' (funcOn (funcBOMOD h))  xs'
+      pure h $ foldl1' (funcOn (funcBOMOD h))  xs'
     BO CONCAT -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      eval h $ foldl1' (funcOn (funcBOCONCAT h))  xs'
+      pure h $ foldl1' (funcOn (funcBOCONCAT h))  xs'
     BP GT' -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      eval h $ foldl1' (funcOn (funcBPGT h)) xs'
+      pure h $ foldl1' (funcOn (funcBPGT h)) xs'
     BP LT' -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      eval h $ foldl1' (funcOn (funcBPLT h)) xs'
+      pure h $ foldl1' (funcOn (funcBPLT h)) xs'
     BP EQ' -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      eval h $ foldl1' (funcOn (funcBPEQ h)) xs'
+      pure h $ foldl1' (funcOn (funcBPEQ h)) xs'
     SF TYPEOF -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
       case xs' of
@@ -180,21 +186,63 @@ evalList h (Right (TList (func : xs))) =
         _ -> do
           writeLog h "This isn't eval list for get"
           pure $ Left $ TEvalError "This isn't eval list for get"
-    -- SF SET -> do
-    --   xs' <- mapM (eval h) (map Right (tail xs)) -- :: [EvalToken]
-    --   case xs' of
-    --     [Right newValue] -> do
-    --       isExist <- check h (head xs) 
-    --       case isExist of
-    --         Left e -> do
-    --           writeLog h ("This " ++ show (head xs) ++ " does not exitst in scope")
-    --           pure $ Left $ TEvalError ("This " ++ show (head xs) ++ " does not exitst in scope")
-    --         Right _ -> do 
-    --           update h (head xs) newValue
-    --           writeLog h (show (head xs) ++ " UPDATE TO " ++ show newValue )
-    --           pure $ Right $ TNil
-    _ -> do
-      writeLog h "This isn't eval list case error "
+    SF QUOTE -> do
+      case (map Right xs) of
+        [value] -> do
+          writeLog h "Quote  = don't eval"
+          pure $ value
+        _ -> do
+          writeLog h "This isn't eval list for quote"
+          pure $ Left $ TEvalError "This isn't eval list for quote"
+    SF EVAL -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      case xs' of
+        [Right value] -> do
+          writeLog h $ " Eval this " ++ show value
+          eval h $ Right value
+        _ -> do
+          writeLog h "This isn't eval list for eval"
+          pure $ Left $ TEvalError "This isn't eval list for eval"
+    SF CAR -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      case xs' of
+        [Right (TList xs'')] -> do
+          writeLog h $ " Car this from LIst:  " ++ show xs'
+          pure $ Right $ head xs''
+        _ -> do
+          writeLog h "This isn't eval list for car"
+          pure $ Left $ TEvalError "This isn't eval list for car"
+    SF CDR -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      case xs' of
+        [Right (TList xs'')] -> do
+          writeLog h $ " CDR this from LIst:  " ++ show xs'
+          pure $ Right $ TList $ tail xs''
+        _ -> do
+          writeLog h "This isn't eval list for CDR"
+          pure $ Left $ TEvalError "This isn't eval list for cDr"
+    SF CONS -> do
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      case xs' of
+        [Right head', Right (TList tail')] -> do
+          writeLog h $ " CONS this :  " ++ show xs'
+          pure $ Right $ TList $ (head' : tail')
+        _ -> do
+          writeLog h "This isn't eval list for CONS"
+          pure $ Left $ TEvalError "This isn't eval list for CONS"
+    SF IF -> do -- bool FalseAction TrueAction ValueBool  - bool 1 2 False => 1
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      case xs' of
+        [fAction, tAction, (Right ifValue)] -> do
+          writeLog h $ " bool action action Bool:  " ++ show xs'
+          if ifValue == TPil
+          then pure $ tAction 
+          else pure $ fAction
+        _ -> do
+          writeLog h "This isn't eval list for IF"
+          pure $ Left $ TEvalError "This isn't eval list for IF"
+    r -> do
+      writeLog h $ "This isn't eval list case error " ++ show r
       pure $ Left $ TEvalError "This isn't eval list case error"
 
 
