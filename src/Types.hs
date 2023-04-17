@@ -33,7 +33,7 @@ instance Show Token where
     TList [] -> "()"
     TList xs -> mconcat ["(", intercalate " " $ map show xs, ")"]
     -- TList xs -> mconcat ["(", intercalate " " $ filter (not . null) $ map (\case {TComment _ -> ""; x -> show x}) xs, ")"]
-    TStr s -> show s
+    TStr s -> s
     TSymbol name -> map toUpper name
     TEvalError err -> err
     TNil -> "()"
@@ -64,5 +64,6 @@ instance Show Token where
     SF LAMBDA     -> "lambda"
     SF MACRO      -> "macro"
     SF MACROEXPAND-> "macroexpand" 
+    SF SYMBOL-> "symbol" 
     TComment comment -> comment 
     _ -> error "token show"

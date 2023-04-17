@@ -42,25 +42,14 @@ eval h (Right x) =
     TPil -> withEval h evalPil x
     TSymbol _ -> withEval h evalSymbol x 
     TList xs ->  withEvalList h evalList x--do
-      -- case xs of
-      --   ((TQuote token) : _) -> evalQuote token
-      --   xs' -> do
-      --     -- writeLog h $ "LIST HERE" ++ show xs' 
-          -- withEvalList h evalList x
-    _ -> do
-      writeLog h $ "This isn't Token for eval"
+    other -> do
+      -- writeLog h $ "This isn't Token for eval       " ++ show (other == BO ADD)
       pure $ Right x 
 
 evalQuote :: (Monad m) => Token -> m (EvalToken)
 evalQuote (TEvalError e) = pure $ Left $ TEvalError e
 evalQuote token = pure $ Right token
 
--- evalTypeOf :: (Monad m) => Handle m -> Token -> m (EvalToken)
--- evalTypeOf h (SF TYPEOF) = if i > 10000
---   then do
---     writeLog h $ "Very Big Int man!"
---     pure $ Left $ TEvalError "Very Big Int man!"
---   else pure $ Right $ TInt i
 
 withEval :: (Monad m) => Handle m -> (Handle m -> Token -> m (EvalToken)) -> Token -> m (EvalToken)
 withEval h funcEval token = do
@@ -151,7 +140,7 @@ evalList h (Right (TList (func : xs))) =
           writeLog h (show (head xs) ++ " UPDATE TO " ++ show value )
           pure $ Right $ TNil
         _ -> do
-          writeLog h "This isn't eval list for def"
+          writeLog h $ "This isn't eval list for def" ++ show xs'
           pure $ Left $ TEvalError "This isn't eval list for def"
     SF SET -> do
       xs' <- mapM (eval h) (map Right (tail xs)) -- :: [EvalToken]
@@ -251,25 +240,24 @@ evalList h (Right (TList (func : xs))) =
       else do
         writeLog h "This isn't eval list for read"
         pure $ Left $ TEvalError "This isn't eval list for read"
+    SF COND -> do
+      undefined
+    SF SYMBOL -> do 
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+      case xs' of
+        [x] -> do
+          case x of
+            Right (TStr symbol) -> pure $ Right $ TSymbol symbol 
+            _ -> do
+              writeLog h "This isn't string for symbol"
+              pure $ Left $ TEvalError "This isn't eval list for symbol"
+        otherwise -> do
+          writeLog h "This isn't eval list for symbol"
+          pure $ Left $ TEvalError "This isn't string for symbo"
     another -> do
-      writeLog h $ "This isn't eval list - case error " ++ show another
-      -- xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
-      -- let xss = sequence xs'
-      -- case xss of
-      --   Left e -> do
-      --     writeLog h $ "This isn't eval list for another" ++ show e
-      --     pure $ Left $ TEvalError "This isn't eval list for another"
-      --   Right rs -> do
-      --     writeLog h $ "This isn't eval list for another" ++ show rs
-      --     pure $ Right $ TList rs
-      pure $ Left $ TEvalError "This isn't eval list case error"
-
-    -- SF QUOTE -> do
-    --   case (map Right xs) of
-    --     [value] -> do
-    --       writeLog h "Quote  = don't eval"
-    --       pure $ value
--- evalList h (Right (TList (func : xs))) =
+      writeLog h $ "This isn't eval list - case error " ++ show another ++ " here"
+      xs' <- mapM (eval h) (map Right (xs)) -- :: [EvalToken]
+      pure $ last xs'
 
 evalNil :: (Monad m) => Handle m -> Token -> m (EvalToken)
 evalNil h false = pure $ Right $ false
@@ -277,7 +265,10 @@ evalPil :: (Monad m) => Handle m -> Token -> m (EvalToken)
 evalPil h true = pure $ Right $ true
 
 evalSymbol :: (Monad m) => Handle m -> Token -> m (EvalToken)
-evalSymbol h name = pure $ Right name
+evalSymbol h name = do
+  writeLog h $ "evalSymbol: " ++ show name
+  pure $ Right name
+
 
 evalStr :: (Monad m) => Handle m -> Token -> m (EvalToken)
 evalStr h string = pure $ Right $ string

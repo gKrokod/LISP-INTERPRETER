@@ -84,5 +84,9 @@ funcSFTYPEOF (SF _) = TStr "SF"
 funcSFTYPEOF (BP _) = TStr "BP" 
 
 sfPrint :: EvalToken -> String
-sfPrint (Left e) = show e 
-sfPrint (Right v) = show v 
+sfPrint (Left e) = case e of
+                      TEvalError s -> s
+                      _ -> show e
+sfPrint (Right v) = case v of
+                      TStr s -> concat ["***\n", s, "\n***"]
+                      _ -> show v

@@ -1,4 +1,4 @@
-module Parser (readIOREPL, readREPL, sfRead) where
+module Parser where --(readIOREPL, readREPL, sfRead) where
 
 import Types
 import Text.Parsec
@@ -25,10 +25,10 @@ readREPL text = makeTypeFromSymbol . filterComment <$> parse parseTToken "" text
    -- isList = (not . null) txt && length (words txt) > 1
    isList = (not . null) txt && length (words txt) > 1 && (head txt /= '(')
    text' = if isList 
-   then if head text == '\'' -- inache lomaetsya quotirovaniy '
-        then txt
-        else '(' : txt ++ ")" 
-   else txt
+           then if head text == '\'' -- inache lomaetsya quotirovaniy '
+                then txt
+                else '(' : txt ++ ")" 
+           else txt
    -- text' = if isList then "(" ++ txt ++ ")" else txt
    -- text' = txt 
 
@@ -72,7 +72,7 @@ makeTypeFromSymbol (TSymbol "nil") = TNil
 makeTypeFromSymbol (TSymbol "t") = TPil
 makeTypeFromSymbol (TList []) = TNil
 makeTypeFromSymbol (TList xs) = TList $ map makeTypeFromSymbol xs
--- makeTypeFromSymbol (TSymbol "symbol") = SF SYMBOL  -- дублирует наверно тип TSymbol String
+makeTypeFromSymbol (TSymbol "symbol") = SF SYMBOL -- по строке возвращает символ >>> symbol (++ "ex" "p") = exp 
 makeTypeFromSymbol xs = xs
 
 parseAnyToken :: Parser Token
@@ -101,8 +101,8 @@ parseTComment = do
   pure $ TComment cmt
 
 parseTSymbol :: Parser Token
-parseTSymbol = many1 ( noneOf ("() \n\t\"';" ++ ['0'.. '9'])) >>= pure . TSymbol
-
+parseTSymbol = many1 ( noneOf ("() \n\t\"';")) >>= pure . TSymbol
+-- parseTSymbol = many1 ( noneOf ("() \n\t\"';" ++ ['0'.. '9'])) >>= pure . TSymbol
 
 parseTQuote :: Parser Token
 parseTQuote = do 
