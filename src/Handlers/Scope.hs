@@ -254,21 +254,25 @@ evalList h (Right (TList (func : xs))) =
         otherwise -> do
           writeLog h "This isn't eval list for symbol"
           pure $ Left $ TEvalError "This isn't string for symbol"
-    SF LAMBDA -> do
+    -- SF LAMBDA -> do
       -- xs' <- mapM (eval h) (map Right (drop 2 xs)) -- :: [EvalToken]
-      case xs of
-        [Arg, Body] -> do
+      -- case xs of
+      --   [Arg, Body] -> do
           -- update h (head xs) value
           -- writeLog h (show (head xs) ++ " UPDATE TO " ++ show value )
           -- pure $ Right $ SF LAMBDA' Arg Body Ctx 
-        _ -> do
-          writeLog h $ "This isn't eval list for lambda" ++ show xs'
-          pure $ Left $ TEvalError "This isn't eval list for lambda"
-      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
+        -- _ -> do
+        --   writeLog h $ "This isn't eval list for lambda" ++ show xs'
+        --   pure $ Left $ TEvalError "This isn't eval list for lambda"
+      -- xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
     another -> do
-      writeLog h $ "This isn't eval list - case error " ++ show another ++ " here"
+      writeLog h $ "Head element evaless - case error " ++ show another ++ " here"
       xs' <- mapM (eval h) (map Right (xs)) -- :: [EvalToken]
-      pure $ last xs'
+      case xs' of
+        [] -> pure $ Left $ func
+        _ -> do
+          writeLog h $ "Eval all " ++ show xs' ++ " , but return last"
+          pure $ last xs'
 
 evalNil :: (Monad m) => Handle m -> Token -> m (EvalToken)
 evalNil h false = pure $ Right $ false
