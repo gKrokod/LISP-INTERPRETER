@@ -253,7 +253,18 @@ evalList h (Right (TList (func : xs))) =
               pure $ Left $ TEvalError "This isn't eval list for symbol"
         otherwise -> do
           writeLog h "This isn't eval list for symbol"
-          pure $ Left $ TEvalError "This isn't string for symbo"
+          pure $ Left $ TEvalError "This isn't string for symbol"
+    SF LAMBDA -> do
+      -- xs' <- mapM (eval h) (map Right (drop 2 xs)) -- :: [EvalToken]
+      case xs of
+        [Arg, Body] -> do
+          -- update h (head xs) value
+          -- writeLog h (show (head xs) ++ " UPDATE TO " ++ show value )
+          -- pure $ Right $ SF LAMBDA' Arg Body Ctx 
+        _ -> do
+          writeLog h $ "This isn't eval list for lambda" ++ show xs'
+          pure $ Left $ TEvalError "This isn't eval list for lambda"
+      xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
     another -> do
       writeLog h $ "This isn't eval list - case error " ++ show another ++ " here"
       xs' <- mapM (eval h) (map Right (xs)) -- :: [EvalToken]

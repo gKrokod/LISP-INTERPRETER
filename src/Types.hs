@@ -16,7 +16,8 @@ data BO = ADD | SUB | MUL | DIV | MOD | CONCAT deriving (Eq, Show, Ord)
 data BP = GT' | LT' | EQ' deriving (Eq, Show, Ord)
 
 data SF = DEF | SET | GET | QUOTE | TYPEOF | CONS | CAR 
-          | CDR | COND | IF | PRINT | READ | EVAL | EVALIN | LAMBDA
+          | CDR | COND | IF | PRINT | READ | EVAL 
+          | EVALIN | LAMBDA | LAMBDA'
           | MACRO | MACROEXPAND | SYMBOL deriving (Eq, Show, Ord)
 
 
