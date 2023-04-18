@@ -1,4 +1,4 @@
-module Handlers.Scope where
+module Handlers.Eval where
 import Types
 import Prelude hiding (check)
 import Control.Monad
@@ -10,6 +10,7 @@ data Handle m = Handle
     { writeLog :: String -> m ()
     , check :: Name -> m (Either EvalError Value)
     , update :: Name -> Value -> m ()
+    , insert :: Name -> Value -> m ()
     , funcBOMUL :: Value -> Value -> Value
     , funcBOADD :: Value -> Value -> Value
     , funcBOSUB :: Value -> Value -> Value
@@ -136,7 +137,8 @@ evalList h (Right (TList (func : xs))) =
       xs' <- mapM (eval h) (map Right (tail xs)) -- :: [EvalToken]
       case xs' of
         [Right value] -> do
-          update h (head xs) value
+          -- update h (head xs) value
+          insert h (head xs) value
           writeLog h (show (head xs) ++ " UPDATE TO " ++ show value )
           pure $ Right $ TNil
         _ -> do

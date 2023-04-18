@@ -20,11 +20,29 @@ type ScopeMap = Map.Map Name Value
 newtype ScopeGlobal = ScopeGlobal (MVar ScopeMap)
 
 -- data Handle m = Handle
---   -- {   eval :: EvalToken -> m (EvalToken) 
+--   -- { eval :: EvalToken -> m (EvalToken) 
 --     { writeLog :: String -> m ()
---     , check :: Name -> m (EvalToken)
+--     , check :: Name -> m (Either EvalError Value)
 --     , update :: Name -> Value -> m ()
+--     , funcBOMUL :: Value -> Value -> Value
+--     , funcBOADD :: Value -> Value -> Value
+--     , funcBOSUB :: Value -> Value -> Value
+--     , funcBODIV :: Value -> Value -> Value
+--     , funcBOMOD :: Value -> Value -> Value
+--     , funcBOCONCAT :: Value -> Value -> Value
+--     , funcBPGT :: Value -> Value -> Value
+--     , funcBPLT :: Value -> Value -> Value
+--     , funcBPEQ :: Value -> Value -> Value
+--     , funcSFTYPEOF :: Value -> Value
+--     , hPrint :: EvalToken -> m ()
+--     , hRead :: m (EvalToken)
+--     , changeEnvironment :: Environment -> m (Environment)
+--     , giveEnvironment :: m (Environment)
+--     , copyEnvironment :: Environment
+--     , restore :: Environment
 --   }
+--
+--
 
 newScope :: IO ScopeGlobal
 newScope = do
@@ -52,23 +70,31 @@ type Frame = Map.Map Name Value
 type Scope = [Frame]
 newtype Environment = Environment (MVar Scope)
 
-insert :: Environment-> Name -> Value -> IO ()
+newEnvironment :: IO Environment
+newEnvironment = do
+  m <- newMVar $ [Map.fromList [(TSymbol "pi", TDouble 4)] ]
+  pure $ Environment m
+
+insert :: Environment -> Name -> Value -> IO ()
 insert (Environment m) name value = do
   (s : scope) <- takeMVar m
   let s' = Map.insert name value s
   putMVar m (s' : scope)
   seq s' (pure ())
 -- работа set по изменению переменной в ближайшем скоупе
-update' :: Environment-> Name -> Value -> IO (EvalToken)
+-- update' :: Environment-> Name -> Value -> IO (EvalToken)
+update' :: Environment-> Name -> Value -> IO ()
 update' (Environment m) name value = do
   scope <- takeMVar m
   case find (Map.member name) scope of
-    Nothing -> pure $ Left $ TEvalError (show name ++ " does not exist in Environment.. set ->")
+    Nothing -> pure ()
+    -- Nothing -> pure $ Left $ TEvalError (show name ++ " does not exist in Environment.. set ->")
     Just _ -> do
       let scope' = set' scope name value
       putMVar m (scope')
       seq scope' (pure ())
-      pure $ Right $ TNil
+      pure () 
+      -- pure $ Right $ TNil
 
 -- изменяем значение, но не сообщаем если не нашлилоЖц
 -- 

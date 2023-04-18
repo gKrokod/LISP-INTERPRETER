@@ -26,7 +26,7 @@ source-repository head
 library
   exposed-modules:
       Eval.EvalFunction
-      Handlers.Scope
+      Handlers.Eval
       Lib
       Parser
       Scope

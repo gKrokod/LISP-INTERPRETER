@@ -9,7 +9,7 @@ import Types
 import Control.Monad.State
 import qualified Data.Map as Map
 import Data.Foldable
-import qualified Handlers.Scope
+import qualified Handlers.Eval
 import qualified Scope
 import qualified Eval.EvalFunction
 
@@ -77,36 +77,57 @@ import qualified Eval.EvalFunction
 main :: IO ()
 main = do
   scope <- Scope.newScope
+  env <- Scope.newEnvironment
+  -- let handle =
+  --       Handlers.Eval.Handle
+  --         {   
+  --             Handlers.Eval.writeLog = \log -> print $ "LOG: " <> log 
+  --           , Handlers.Eval.check = Scope.check scope
+  --           , Handlers.Eval.update = Scope.update scope
+  --           , Handlers.Eval.funcBOMUL = Eval.EvalFunction.funcBOMUL
+  --           , Handlers.Eval.funcBOADD = Eval.EvalFunction.funcBOADD
+  --           , Handlers.Eval.funcBOSUB = Eval.EvalFunction.funcBOSUB
+  --           , Handlers.Eval.funcBODIV = Eval.EvalFunction.funcBODIV
+  --           , Handlers.Eval.funcBOMOD = Eval.EvalFunction.funcBOMOD
+  --           , Handlers.Eval.funcBOCONCAT = Eval.EvalFunction.funcBOCONCAT
+  --           , Handlers.Eval.funcBPGT = Eval.EvalFunction.funcBPGT
+  --           , Handlers.Eval.funcBPLT = Eval.EvalFunction.funcBPLT
+  --           , Handlers.Eval.funcBPEQ = Eval.EvalFunction.funcBPEQ
+  --           , Handlers.Eval.funcSFTYPEOF = Eval.EvalFunction.funcSFTYPEOF
+  --           , Handlers.Eval.hPrint = putStrLn . Eval.EvalFunction.sfPrint
+  --           , Handlers.Eval.hRead = sfRead
+  --         }
   let handle =
-        Handlers.Scope.Handle
+        Handlers.Eval.Handle
           {   
-              Handlers.Scope.writeLog = \log -> print $ "LOG: " <> log 
-            , Handlers.Scope.check = Scope.check scope
-            , Handlers.Scope.update = Scope.update scope
-            , Handlers.Scope.funcBOMUL = Eval.EvalFunction.funcBOMUL
-            , Handlers.Scope.funcBOADD = Eval.EvalFunction.funcBOADD
-            , Handlers.Scope.funcBOSUB = Eval.EvalFunction.funcBOSUB
-            , Handlers.Scope.funcBODIV = Eval.EvalFunction.funcBODIV
-            , Handlers.Scope.funcBOMOD = Eval.EvalFunction.funcBOMOD
-            , Handlers.Scope.funcBOCONCAT = Eval.EvalFunction.funcBOCONCAT
-            , Handlers.Scope.funcBPGT = Eval.EvalFunction.funcBPGT
-            , Handlers.Scope.funcBPLT = Eval.EvalFunction.funcBPLT
-            , Handlers.Scope.funcBPEQ = Eval.EvalFunction.funcBPEQ
-            , Handlers.Scope.funcSFTYPEOF = Eval.EvalFunction.funcSFTYPEOF
-            , Handlers.Scope.hPrint = putStrLn . Eval.EvalFunction.sfPrint
-            , Handlers.Scope.hRead = sfRead
+              Handlers.Eval.writeLog = \log -> print $ "LOG: " <> log 
+            , Handlers.Eval.check = Scope.check' env
+            , Handlers.Eval.insert = Scope.insert env
+            , Handlers.Eval.update = Scope.update' env
+            , Handlers.Eval.funcBOMUL = Eval.EvalFunction.funcBOMUL
+            , Handlers.Eval.funcBOADD = Eval.EvalFunction.funcBOADD
+            , Handlers.Eval.funcBOSUB = Eval.EvalFunction.funcBOSUB
+            , Handlers.Eval.funcBODIV = Eval.EvalFunction.funcBODIV
+            , Handlers.Eval.funcBOMOD = Eval.EvalFunction.funcBOMOD
+            , Handlers.Eval.funcBOCONCAT = Eval.EvalFunction.funcBOCONCAT
+            , Handlers.Eval.funcBPGT = Eval.EvalFunction.funcBPGT
+            , Handlers.Eval.funcBPLT = Eval.EvalFunction.funcBPLT
+            , Handlers.Eval.funcBPEQ = Eval.EvalFunction.funcBPEQ
+            , Handlers.Eval.funcSFTYPEOF = Eval.EvalFunction.funcSFTYPEOF
+            , Handlers.Eval.hPrint = putStrLn . Eval.EvalFunction.sfPrint
+            , Handlers.Eval.hRead = sfRead
           }
   loop handle
 
 
-loop :: Handlers.Scope.Handle IO -> IO ()
+loop :: Handlers.Eval.Handle IO -> IO ()
 loop h = do
   msg <- readIOREPL
   case msg of
     Left e -> print e
     Right p -> do 
       -- newtok <- Handlers.Scope.evalSymbol h (Right p)
-      newtok <- Handlers.Scope.eval h (Right p)
+      newtok <- Handlers.Eval.eval h (Right p)
       print "Result Eval: "
       print newtok
       print $ "Result Print:"
