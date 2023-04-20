@@ -102,6 +102,7 @@ main :: IO ()
 main = do
   global <- Scope.createEnvironment
   firstScope <- Scope.makeLocalEnvironment global (Map.fromList [(TSymbol "pi", TDouble 3.14)])
+  secondScope <- Scope.makeLocalEnvironment firstScope (Map.fromList [(TSymbol "xi", TDouble 100003.14)])
   -- scope <- Scope.newScope
   -- env <- Scope.newEnvironment
   -- let handle =
@@ -142,20 +143,20 @@ main = do
             , Handlers.Eval.funcSFTYPEOF = Eval.EvalFunction.funcSFTYPEOF
             , Handlers.Eval.hPrint = putStrLn . Eval.EvalFunction.sfPrint
             , Handlers.Eval.hRead = sfRead
-            , Handlers.Eval.environment = firstScope
+            -- , Handlers.Eval.environment = secondScope
             
           }
-  loop handle
+  loop handle secondScope
 
 
-loop :: Handlers.Eval.Handle IO Binding -> IO ()
-loop h = do
+loop :: Handlers.Eval.Handle IO Binding -> Environment Binding -> IO ()
+loop h env = do
   msg <- readIOREPL
   case msg of
     Left e -> print e
     Right p -> do 
       -- newtok <- Handlers.Scope.evalSymbol h (Right p)
-      newtok <- Handlers.Eval.eval h (Right p)
+      newtok <- Handlers.Eval.eval h env (Right p)
       print "Result Eval: "
       print newtok
       print $ "Result Print:"
@@ -166,5 +167,5 @@ loop h = do
       --   Right (b, v) -> do
       --     print b
       --     print v --print ((evalREPL (EvalToken Map.empty p)) ) 
-  loop h
+  loop h env
 
