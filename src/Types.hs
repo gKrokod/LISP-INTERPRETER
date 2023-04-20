@@ -4,6 +4,7 @@ import qualified Data.Map as Map
 import Data.List (intercalate)
 import Text.Printf
 import Data.Char (toUpper)
+import Control.Concurrent (MVar, newMVar, putMVar, takeMVar)
 
 data Token = TInt Int | TDouble Double | TList [Token] 
              | TStr String | TNil | TPil
@@ -26,6 +27,14 @@ type Value = Token -- TSymbol example
 type EvalError = Token
 type EvalToken = Either EvalError Value
 
+type Binding = Map.Map Name Value
+-- окружение есть ящик содержащий фрейm
+type Environment a = MVar (Frame a) 
+-- фрейм из ящика окружения есть таблица связывания (Frame a)
+-- и новый ящик и объемлющего окружения (enclosing environment) 
+data Frame a = Frame a (Environment a) 
+-- Создаем родительской окружение, которое никуда не сылается, а содержит MVar ()
+--
 instance Show Token where
   show x = case x of
     TInt i -> show i

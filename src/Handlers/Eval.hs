@@ -5,12 +5,12 @@ import Control.Monad
 import Data.Typeable
 import Data.List (foldl1')
 
-data Handle m = Handle
+data Handle m a = Handle
   -- {   eval :: EvalToken -> m (EvalToken) 
     { writeLog :: String -> m ()
-    , check :: Name -> m (Either EvalError Value)
-    , update :: Name -> Value -> m ()
-    , insert :: Name -> Value -> m ()
+    , check :: Environment a -> Name -> m (Either EvalError Value)
+    , update :: Environment a -> Name -> Value -> m ()
+    , insert :: Environment a -> Name -> Value -> m ()
     , funcBOMUL :: Value -> Value -> Value
     , funcBOADD :: Value -> Value -> Value
     , funcBOSUB :: Value -> Value -> Value
@@ -23,6 +23,8 @@ data Handle m = Handle
     , funcSFTYPEOF :: Value -> Value
     , hPrint :: EvalToken -> m ()
     , hRead :: m (EvalToken)
+    , environment :: Environment a
+    -- , makeLocalEnvironment :: Environment a -> a -> m (Environment a)
   }
 
 -- type Name = Token -- TSymbol example
@@ -30,7 +32,7 @@ data Handle m = Handle
 -- type EvalError = Token TEvalError String
 -- type EvalToken = Either EvalError Value
 
-eval :: (Monad m) => Handle m -> EvalToken -> m (EvalToken)
+eval :: (Monad m) => Handle m Binding -> EvalToken -> m (EvalToken)
 eval h (Left x) = do
   writeLog h $ "EvalError argument" ++ show x 
   pure $ Left x
@@ -52,9 +54,9 @@ evalQuote (TEvalError e) = pure $ Left $ TEvalError e
 evalQuote token = pure $ Right token
 
 
-withEval :: (Monad m) => Handle m -> (Handle m -> Token -> m (EvalToken)) -> Token -> m (EvalToken)
+withEval :: (Monad m) => Handle m Binding -> (Handle m  Binding -> Token -> m (EvalToken)) -> Token -> m (EvalToken)
 withEval h funcEval token = do
-  value <- check h token 
+  value <- check h (environment h)token 
   case value of
     Right v -> do
        writeLog h $ ("exist in scope " ++ show v )
@@ -64,7 +66,7 @@ withEval h funcEval token = do
       _ -> funcEval h token 
 
 
-evalInt :: (Monad m) => Handle m -> Token -> m (EvalToken)
+evalInt :: (Monad m) => Handle m Binding -> Token -> m (EvalToken)
 evalInt h (TInt i) = 
 	  if i > 10000
 	  then do
@@ -73,13 +75,13 @@ evalInt h (TInt i) =
 	  else pure $ Right $ TInt i
 
 
-evalDouble :: (Monad m) => Handle m -> Token -> m (EvalToken)
+evalDouble :: (Monad m) => Handle m Binding -> Token -> m (EvalToken)
 evalDouble h double = pure $ Right $ double
 
 
-withEvalList :: (Monad m) => Handle m -> (Handle m -> EvalToken -> m (EvalToken)) -> Token -> m (EvalToken)
+withEvalList :: (Monad m) => Handle m Binding -> (Handle m Binding -> EvalToken -> m (EvalToken)) -> Token -> m (EvalToken)
 withEvalList h funcEval token = do
-  value <- check h token 
+  value <- check h (environment h) token 
   case value of
     Right v -> do
        writeLog h $ ("exist List in scope " ++ show v )
@@ -88,7 +90,7 @@ withEvalList h funcEval token = do
       (TEvalError e) -> pure $ Left $ TEvalError e
       _ -> funcEval h (Right token)
 
-evalList :: (Monad m) => Handle m -> EvalToken -> m (EvalToken)
+evalList :: (Monad m) => Handle m Binding -> EvalToken -> m (EvalToken)
 -- evalList h (Left x) = do
 --   writeLog h $ "EvalError argument list" ++ show x 
 --   pure $ Left x
@@ -138,7 +140,7 @@ evalList h (Right (TList (func : xs))) =
       case xs' of
         [Right value] -> do
           -- update h (head xs) value
-          insert h (head xs) value
+          insert h(environment h) (head xs) value
           writeLog h (show (head xs) ++ " UPDATE TO " ++ show value )
           pure $ Right $ TNil
         _ -> do
@@ -148,20 +150,20 @@ evalList h (Right (TList (func : xs))) =
       xs' <- mapM (eval h) (map Right (tail xs)) -- :: [EvalToken]
       case xs' of
         [Right newValue] -> do
-          isExist <- check h (head xs) 
+          isExist <- check h (environment h)(head xs) 
           case isExist of
             Left e -> do
               writeLog h ("This " ++ show (head xs) ++ " does not exitst in scope")
               pure $ Left $ TEvalError ("This " ++ show (head xs) ++ " does not exitst in scope")
             Right _ -> do 
-              update h (head xs) newValue
+              update h (environment h)(head xs) newValue
               writeLog h (show (head xs) ++ " UPDATE TO " ++ show newValue )
               pure $ Right $ TNil
     SF GET -> do
       xs' <- mapM (eval h) (map Right xs) -- :: [EvalToken]
       case xs' of
         [Right name] -> do
-          isExist <- check h (head xs) 
+          isExist <- check h (environment h) (head xs) 
           case isExist of
             Left e -> do
               writeLog h ("This " ++ show (head xs) ++ " does not exitst in scope")
@@ -276,18 +278,18 @@ evalList h (Right (TList (func : xs))) =
           writeLog h $ "Eval all " ++ show xs' ++ " , but return last"
           pure $ last xs'
 
-evalNil :: (Monad m) => Handle m -> Token -> m (EvalToken)
+evalNil :: (Monad m) => Handle m  Binding-> Token -> m (EvalToken)
 evalNil h false = pure $ Right $ false
-evalPil :: (Monad m) => Handle m -> Token -> m (EvalToken)
+evalPil :: (Monad m) => Handle m Binding -> Token -> m (EvalToken)
 evalPil h true = pure $ Right $ true
 
-evalSymbol :: (Monad m) => Handle m -> Token -> m (EvalToken)
+evalSymbol :: (Monad m) => Handle m  Binding-> Token -> m (EvalToken)
 evalSymbol h name = do
   writeLog h $ "evalSymbol: " ++ show name
   pure $ Right name
 
 
-evalStr :: (Monad m) => Handle m -> Token -> m (EvalToken)
+evalStr :: (Monad m) => Handle m  Binding-> Token -> m (EvalToken)
 evalStr h string = pure $ Right $ string
 --   value <- check h (TSymbol name)
 --   case value of

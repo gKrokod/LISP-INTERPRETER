@@ -28,6 +28,7 @@ library
       Chan.Chan
       Eval.EvalFunction
       Handlers.Eval
+      Handlers.Scope
       Lib
       Parser
       Scope

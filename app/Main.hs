@@ -10,8 +10,10 @@ import Control.Monad.State
 import qualified Data.Map as Map
 import Data.Foldable
 import qualified Handlers.Eval
+import qualified Handlers.Scope
 import qualified Scope
 import qualified Eval.EvalFunction
+
 
   --   TList xs -> case (head xs) of
   --     BO ADD -> case sT (tail xs) of  --
@@ -73,11 +75,35 @@ import qualified Eval.EvalFunction
 -- loopRE base etoken = do
 --    (b, t) <- evalREPL base etoken
 --    loopRE b t
+-- data Handle m a = Handle
+--   -- {   eval :: EvalToken -> m (EvalToken) 
+--     { writeLog :: String -> m ()
+--     , check :: Name -> m (Either EvalError Value)
+--     , update :: Name -> Value -> m ()
+--     , insert :: Name -> Value -> m ()
+--     , funcBOMUL :: Value -> Value -> Value
+--     , funcBOADD :: Value -> Value -> Value
+--     , funcBOSUB :: Value -> Value -> Value
+--     , funcBODIV :: Value -> Value -> Value
+--     , funcBOMOD :: Value -> Value -> Value
+--     , funcBOCONCAT :: Value -> Value -> Value
+--     , funcBPGT :: Value -> Value -> Value
+--     , funcBPLT :: Value -> Value -> Value
+--     , funcBPEQ :: Value -> Value -> Value
+--     , funcSFTYPEOF :: Value -> Value
+--     , hPrint :: EvalToken -> m ()
+--     , hRead :: m (EvalToken)
+--     , environment :: Environment a
+--     , makeLocalEnvironment :: Environment a -> a -> m (Environment a)
+--   }
 
+--   }
 main :: IO ()
 main = do
-  scope <- Scope.newScope
-  env <- Scope.newEnvironment
+  global <- Scope.createEnvironment
+  firstScope <- Scope.makeLocalEnvironment global (Map.fromList [(TSymbol "pi", TDouble 3.14)])
+  -- scope <- Scope.newScope
+  -- env <- Scope.newEnvironment
   -- let handle =
   --       Handlers.Eval.Handle
   --         {   
@@ -101,9 +127,9 @@ main = do
         Handlers.Eval.Handle
           {   
               Handlers.Eval.writeLog = \log -> print $ "LOG: " <> log 
-            , Handlers.Eval.check = Scope.check' env
-            , Handlers.Eval.insert = Scope.insert env
-            , Handlers.Eval.update = Scope.update' env
+            , Handlers.Eval.check = Scope.check
+            , Handlers.Eval.insert = Scope.insert
+            , Handlers.Eval.update = Scope.update
             , Handlers.Eval.funcBOMUL = Eval.EvalFunction.funcBOMUL
             , Handlers.Eval.funcBOADD = Eval.EvalFunction.funcBOADD
             , Handlers.Eval.funcBOSUB = Eval.EvalFunction.funcBOSUB
@@ -116,11 +142,13 @@ main = do
             , Handlers.Eval.funcSFTYPEOF = Eval.EvalFunction.funcSFTYPEOF
             , Handlers.Eval.hPrint = putStrLn . Eval.EvalFunction.sfPrint
             , Handlers.Eval.hRead = sfRead
+            , Handlers.Eval.environment = firstScope
+            
           }
   loop handle
 
 
-loop :: Handlers.Eval.Handle IO -> IO ()
+loop :: Handlers.Eval.Handle IO Binding -> IO ()
 loop h = do
   msg <- readIOREPL
   case msg of
