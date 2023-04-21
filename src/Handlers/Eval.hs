@@ -4,6 +4,8 @@ import Prelude hiding (check)
 import Control.Monad
 import Data.Typeable
 import Data.List (foldl1')
+import qualified Data.Map as Map
+import qualified Scope
 
 data Handle m a = Handle
   -- {   eval :: EvalToken -> m (EvalToken) 
@@ -23,6 +25,7 @@ data Handle m a = Handle
     , funcSFTYPEOF :: Value -> Value
     , hPrint :: EvalToken -> m ()
     , hRead :: m (EvalToken)
+    , makeLocalEnvironment' :: Environment a -> a -> m (Environment a)
     -- , environment :: Environment a
     -- , makeLocalEnvironment :: Environment a -> a -> m (Environment a)
   }
@@ -38,6 +41,9 @@ eval h env (Left x) = do
   pure $ Left x
 eval h env (Right x) = 
   case x of  
+    -- SF (LAM _ _ _ ) -> do
+    --   writeLog h $ "I AM HEERE! LAM"
+    --   pure undefined
     TStr _ -> withEval h env evalStr x
     TInt _ -> withEval h env evalInt x
     TDouble _ -> withEval h env  evalDouble x
@@ -189,6 +195,17 @@ evalList h env (Right (TList (func : xs))) =
         _ -> do
           writeLog h "This isn't eval list for eval"
           pure $ Left $ TEvalError "This isn't eval list for eval"
+    SF FUNCALL -> do
+      xs' <- mapM (eval h env) (map Right xs) -- :: [EvalToken]
+      let xs'' = sequence xs'
+      case xs'' of
+        Left a -> do
+          writeLog h $ "I AM HEERE! FUNCALL"
+          pure $ Left $ TEvalError "This isn't eval list for lambda"
+        Right (SF (LAM (TList arg) body ctx) : value) -> do
+          writeLog h $ "I AM HEERE! FUNCALL LAM"
+          newEnv <- makeLocalEnvironment' h ctx (Map.fromList $ zip arg value)
+          eval h newEnv (Right body)
     SF CAR -> do
       xs' <- mapM (eval h env) (map Right xs) -- :: [EvalToken]
       case xs' of
@@ -256,19 +273,38 @@ evalList h env (Right (TList (func : xs))) =
         otherwise -> do
           writeLog h "This isn't eval list for symbol"
           pure $ Left $ TEvalError "This isn't string for symbol"
-    -- SF LAMBDA -> do
+    SF LAMBDA -> do
       -- xs' <- mapM (eval h env) (map Right (drop 2 xs)) -- :: [EvalToken]
-      -- case xs of
-      --   [Arg, Body] -> do
+      case xs of
+        [(TList arg), body] -> do
           -- update h (head xs) value
-          -- writeLog h (show (head xs) ++ " UPDATE TO " ++ show value )
-          -- pure $ Right $ SF LAMBDA' Arg Body Ctx 
-        -- _ -> do
-        --   writeLog h $ "This isn't eval list for lambda" ++ show xs'
-        --   pure $ Left $ TEvalError "This isn't eval list for lambda"
+          writeLog h ( "Lambda function with arg :" ++ show arg ++ " and body: " ++ show body)
+          pure $ Right $ SF (LAM (TList arg) body env)
+          -- eval h env (Right $ SF (LAM (TList arg) body env))
+        _ -> do
+          writeLog h $ "I AM HEERE! SF LAMBDA CASE "
+          writeLog h $ "This isn't eval list for lambda" ++ show xs
+          pure $ Left $ TEvalError "This isn't eval list for lambda"
       -- xs' <- mapM (eval h env) (map Right xs) -- :: [EvalToken]
+    SF (LAM (TList arg) body ctx) -> do
+      writeLog h $ "I AM HEERE! LAM"
+      xs' <- mapM (eval h env) (map Right xs) -- :: [EvalToken]
+      let xs'' = sequence xs'
+      case xs'' of
+        Left a -> do
+          writeLog h $ "I AM HEERE! LAM"
+          writeLog h $ "This isn't eval list for lambda" ++ show xs''
+          pure $ Left $ TEvalError "This isn't eval list for lambda"
+        Right s -> do
+          writeLog h $ "I AM HEERE! LAM"
+          newEnv <- makeLocalEnvironment' h ctx (Map.fromList $ zip arg s)
+          eval h newEnv (Right body)
+    SF (LAM _ _ _ ) -> do
+      writeLog h $ "I AM HEERE! LAM"
+      pure $ Right $ TNil 
     another -> do
       writeLog h $ "Head element evaless - case error " ++ show another ++ " here"
+      eval h env (Right another)
       xs' <- mapM (eval h env) (map Right (xs)) -- :: [EvalToken]
       case xs' of
         [] -> pure $ Left $ func
