@@ -39,6 +39,8 @@ ghc-options:
 
 library:
   source-dirs: src
+  dependencies:
+    - parsec
 
 executables:
   lisp-exe:
@@ -64,3 +66,6 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - lisp
+    - parsec
+    - QuickCheck
+    - hspec
