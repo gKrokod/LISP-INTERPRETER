@@ -8,7 +8,7 @@ data SExpr = Atom String
            | Bool Bool 
            | SForm SF
            | BOper BO
-           | BPrim BP deriving (Show, Eq)
+           | BPrim BP deriving (Show, Eq, Ord)
 
 data SF    = DEF | SET | GET 
            | QUOTE | TYPEOF 

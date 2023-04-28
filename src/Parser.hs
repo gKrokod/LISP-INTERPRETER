@@ -26,7 +26,7 @@ lexeme p = do
            return x
 
 parseNumber :: Parser SExpr
-parseNumber = (char '-' >> many1 digit >>= pure . Number . read . ("-" ++))
+parseNumber = try (char '-' >> many1 digit >>= pure . Number . read . ("-" ++))
               <|> (many1 digit >>= pure . Number . read)
 
 parseString :: Parser SExpr
@@ -36,13 +36,13 @@ parseString = do
   void $ char '"'
   pure $ String str
 
-
 parseList :: Parser SExpr 
 parseList = do
   void $ char '('
   e <- many $ lexeme $ parseAnySExpr
   void $ char ')'
   return $ List e
+
 
 parseAtom :: Parser SExpr
 parseAtom = do
@@ -74,6 +74,33 @@ parseAtom = do
     "<" -> BPrim LT'
     "==" -> BPrim EQ'
     otherwise -> Atom atom
+  -- try (do {whitespace; parseAtom}) <|> ( --если в строке есть еще атомы, то верни последний, но э
+  -- походу этим должен заниматься эвулятор
+          -- pure $ case atom of
+          --   "#t" -> Bool True 
+          --   "#f" -> Bool False
+          --   "def" -> SForm DEF
+          --   "set!" -> SForm SET
+          --   "get" -> SForm GET
+          --   "type-of" -> SForm TYPEOF
+          --   "cons" -> SForm CONS
+          --   "car" -> SForm CAR
+          --   "cdr" -> SForm CDR
+          --   "cond" -> SForm COND
+          --   "if" -> SForm IF
+          --   "read" -> SForm READ
+          --   "print" -> SForm PRINT
+          --   "eval" -> SForm EVAL
+          --   "eval-in" -> SForm EVALIN
+          --   "l" -> SForm LAMBDA
+          --   "macro" -> SForm MACRO
+          --   "+" -> BOper ADD
+          --   "-" -> BOper SUB
+          --   "*" -> BOper MUL
+          --   ">" -> BPrim GT'
+          --   "<" -> BPrim LT'
+          --   "==" -> BPrim EQ'
+          --   otherwise -> Atom atom)
 
 parseQuoted :: Parser SExpr
 parseQuoted = char '\'' *> parseAnySExpr >>= \x -> pure $ List [Atom "quote", x] 
@@ -81,6 +108,8 @@ parseQuoted = char '\'' *> parseAnySExpr >>= \x -> pure $ List [Atom "quote", x]
 parseAnySExpr :: Parser SExpr
 parseAnySExpr = do
   whitespace
-  choice [parseAtom, parseString, parseNumber, parseQuoted, parseList]
+  -- parseNumber <|> parseAtom <|> parseString<|> parseQuoted<|> parseList
+  choice [parseNumber, parseString, parseQuoted, parseList, try parseAtom]
+
 
 
