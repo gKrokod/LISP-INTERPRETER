@@ -5,13 +5,22 @@ import Text.Parsec
 import Text.Parsec.String (Parser)
 import Control.Monad 
 
+
+parseInput :: Parser SExpr 
+parseInput = do
+  e <- many $ sepEndBy1 parseAnySExpr whitespace 
+  let xs = concat e
+  case length xs of
+    0 -> parseAnySExpr  -- error
+    1 -> pure $ head xs -- atom
+    more -> pure $ List xs -- list
+
 -- удалить комментарии, которые открываются и закрываются символом ;
 clearComment :: String -> String
 clearComment = snd . foldr f (False, [])
   where f ';' (flag, acc) = (not flag, acc)
         f x (False, acc) = (False, x : acc)
         f x (True, acc) = (True, acc)
-
 
 symbol :: Parser Char
 symbol = oneOf "!$%&|*+-/:<=?>@^_~#" 
@@ -109,7 +118,7 @@ parseAnySExpr :: Parser SExpr
 parseAnySExpr = do
   whitespace
   -- parseNumber <|> parseAtom <|> parseString<|> parseQuoted<|> parseList
-  choice [parseNumber, parseString, parseQuoted, parseList, try parseAtom]
+  choice [parseNumber, parseString, parseQuoted, parseList,  parseAtom]
 
 
 

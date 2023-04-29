@@ -6,6 +6,7 @@ import Test.Hspec.QuickCheck (modifyMaxSuccess)
 import Test.QuickCheck (property)
 import Text.Parsec
 import Data.Either
+import Data.Bool
 
 main :: IO ()
 main = hspec $ do
@@ -30,60 +31,71 @@ main = hspec $ do
                      else if head str `elem` firstSymbol
                        then [head str] ++ filter (`elem` restSymbol) (tail str)
                        else "a"
-          fromRight (Atom "") (parse parseAtom "lisp" str') 
-            `shouldBe` Atom str' 
+          let dictionary = ["<", ">", "==", "-","+","*", "l", "#t", "#f", "def"] -- and some other
+          let str'' = bool str' (str' ++ "a") $ str' `elem` dictionary
+          fromRight (Atom "") (parse parseAtom "lisp" str'') 
+            `shouldBe` Atom str'' 
+
+      it "Input: Parser any string = Parser (print any string) " $ do
+        property $ \input1 -> do
+          case parse parseInput "lisp" input1 of
+            Left _ -> "LEFT" `shouldBe` "LEFT"
+            Right txt -> Right txt `shouldBe` (parse parseInput "lisp" (show txt))
+
     it "fix test" $ do
-      fromRight (Atom "") (parse parseAnySExpr "lisp" " '(  1  -2 3)") 
+      fromRight (Atom "") (parse parseInput "lisp" " '(  1  -2 3)") 
         `shouldBe` List [Atom "quote", List [Number 1, Number (-2), Number 3]] 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "(      ()    ()    )") 
+      fromRight (Atom "") (parse parseInput "lisp" (clearComment ";New code; '(  1  -2 3) ; This is a commentary;"))
+        `shouldBe` List [Atom "quote", List [Number 1, Number (-2), Number 3]] 
+      fromRight (Atom "") (parse parseInput "lisp" "(      ()    ()    )") 
         `shouldBe` List [List [],List []] 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" " a b c d         e     ") 
-        `shouldBe` Atom "e" 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" " 1 2 3 4         5     ") 
-        `shouldBe` Number 5 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "#t") 
+      fromRight (Atom "") (parse parseInput "lisp" " a b c d         e     ") 
+        `shouldBe` List [Atom "a", Atom "b", Atom "c", Atom "d", Atom "e"] 
+      fromRight (Atom "") (parse parseInput "lisp" " 1 2 3 4         5     ") 
+        `shouldBe` List [Number 1, Number 2, Number 3, Number 4, Number 5] 
+      fromRight (Atom "") (parse parseInput "lisp" "#t") 
         `shouldBe` (Bool True) 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" " #f") 
+      fromRight (Atom "") (parse parseInput "lisp" " #f") 
         `shouldBe` (Bool False) 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "def") 
+      fromRight (Atom "") (parse parseInput "lisp" "def") 
         `shouldBe` (SForm DEF) 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "set!") 
+      fromRight (Atom "") (parse parseInput "lisp" "set!") 
         `shouldBe` (SForm SET) 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "get") 
+      fromRight (Atom "") (parse parseInput "lisp" "get") 
         `shouldBe` (SForm GET) 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "    type-of") 
+      fromRight (Atom "") (parse parseInput "lisp" "    type-of") 
         `shouldBe` (SForm TYPEOF) 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "cons") 
+      fromRight (Atom "") (parse parseInput "lisp" "cons") 
         `shouldBe` (SForm CONS) 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "cdr") 
+      fromRight (Atom "") (parse parseInput "lisp" "cdr") 
         `shouldBe` (SForm CDR) 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "car") 
+      fromRight (Atom "") (parse parseInput "lisp" "car") 
         `shouldBe` (SForm CAR) 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "cond") 
+      fromRight (Atom "") (parse parseInput "lisp" "cond") 
         `shouldBe` (SForm COND) 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "if") 
+      fromRight (Atom "") (parse parseInput "lisp" "if") 
         `shouldBe` (SForm IF) 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "read") 
+      fromRight (Atom "") (parse parseInput "lisp" "read") 
         `shouldBe` (SForm READ) 
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "print") 
+      fromRight (Atom "") (parse parseInput "lisp" "print") 
         `shouldBe` (SForm PRINT)
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "eval") 
+      fromRight (Atom "") (parse parseInput "lisp" "eval") 
         `shouldBe` (SForm EVAL)
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "eval-in") 
+      fromRight (Atom "") (parse parseInput "lisp" "eval-in") 
         `shouldBe` (SForm EVALIN)
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "l") 
+      fromRight (Atom "") (parse parseInput "lisp" "l") 
         `shouldBe` (SForm LAMBDA)
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "macro") 
+      fromRight (Atom "") (parse parseInput "lisp" "macro") 
         `shouldBe` (SForm MACRO)
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "+") 
+      fromRight (Atom "") (parse parseInput "lisp" "+") 
         `shouldBe` (BOper ADD)
-      fromRight (Atom "net minusa") (parse parseAnySExpr "lisp" "-") 
+      fromRight (Atom "net minusa") (parse parseInput "lisp" "-") 
         `shouldBe` (BOper SUB)
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "*") 
+      fromRight (Atom "") (parse parseInput "lisp" "*") 
         `shouldBe` (BOper MUL)
-      fromRight (Atom "") (parse parseAnySExpr "lisp" ">") 
+      fromRight (Atom "") (parse parseInput "lisp" ">") 
         `shouldBe` (BPrim GT')
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "<") 
+      fromRight (Atom "") (parse parseInput "lisp" "<") 
         `shouldBe` (BPrim LT')
-      fromRight (Atom "") (parse parseAnySExpr "lisp" "==") 
+      fromRight (Atom "") (parse parseInput "lisp" "==") 
         `shouldBe` (BPrim EQ')
