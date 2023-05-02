@@ -26,7 +26,7 @@ symbol :: Parser Char
 symbol = oneOf "!$%&|*+-/:<=?>@^_~#" 
 
 whitespace :: Parser ()
-whitespace = void $ many $ oneOf " \n\t"
+whitespace = void $ many $ oneOf " \n\t\r\\"
 
 lexeme :: Parser a -> Parser a
 lexeme p = do

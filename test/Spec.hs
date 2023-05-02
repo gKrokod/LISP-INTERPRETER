@@ -1,5 +1,6 @@
 import Types 
 import Parser
+import Eval
 
 import Test.Hspec (context, describe, hspec, it, shouldBe, shouldNotBe)
 import Test.Hspec.QuickCheck (modifyMaxSuccess)
@@ -99,3 +100,27 @@ main = hspec $ do
         `shouldBe` (BPrim LT')
       fromRight (Atom "") (parse parseInput "lisp" "==") 
         `shouldBe` (BPrim EQ')
+
+  describe "Eval" $ modifyMaxSuccess (const 1000) $ do
+    context "random input" $ do
+      it "Input: Number" $ do
+        property $ \int -> do
+          (eval $ Number int) 
+            `shouldBe`  Number int 
+
+      it "Input: Str" $ do
+        property $ \str -> do
+          let clearStr = filter (/='\"') str
+          (eval $ String clearStr)
+            `shouldBe` String clearStr 
+
+    it "fix test" $ do
+      (eval $ Bool True)
+        `shouldBe` (Bool True )
+      (eval $ Bool False)
+        `shouldBe` (Bool False )
+      (eval $ List [Atom "quote", Bool False])
+        `shouldBe` ( Bool False)
+      (eval $ List [Atom "quote", List [Number 1, Number 2]])
+        `shouldBe` (List [Number 1, Number 2])
+

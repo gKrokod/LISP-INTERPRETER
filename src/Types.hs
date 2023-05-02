@@ -1,5 +1,5 @@
 module Types where
-
+import Control.Concurrent (MVar)
 import Data.List (intercalate)
 
 data SExpr = Atom String
@@ -59,3 +59,9 @@ instance Show SF where
   show EVALIN = "eval-in"
   show LAMBDA = "l"
   show MACRO = "macro"
+
+-- окружение есть ящик содержащий фрейm
+type Environment a = MVar (Frame a) 
+-- фрейм из ящика окружения есть таблица связывания (Frame a)
+-- и новый ящик и объемлющего окружения (enclosing environment) 
+data Frame a = Frame a (Environment a)
