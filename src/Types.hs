@@ -1,6 +1,7 @@
 module Types where
 import Control.Concurrent (MVar)
 import Data.List (intercalate)
+import qualified Data.Map.Strict as Map
 
 data SExpr = Atom String
            | List [SExpr]
@@ -9,7 +10,7 @@ data SExpr = Atom String
            | Bool Bool 
            | SForm SF
            | BOper BO
-           | BPrim BP deriving (Eq, Ord)
+           | BPrim BP deriving (Eq)
 
 data SF    = DEF | SET | GET 
            | QUOTE | TYPEOF 
@@ -17,10 +18,12 @@ data SF    = DEF | SET | GET
            | IF 
            | PRINT | READ 
            | EVAL  | EVALIN | LAMBDA
-           | MACRO | MACROEXPAND deriving (Eq, Ord )
+           | LAMBDA' [Name] Value Environment -- lambda args body -> lambda' args body env
+           | MACRO | MACROEXPAND deriving (Eq)
 
 data BO = ADD | SUB | MUL deriving (Eq, Ord)
 data BP = GT' | LT' | EQ' deriving (Eq, Ord)
+
 
 instance Show BO where
   show ADD = "+"
@@ -58,10 +61,16 @@ instance Show SF where
   show EVAL = "eval"
   show EVALIN = "eval-in"
   show LAMBDA = "l"
+  show (LAMBDA' xs v e) = show xs  ++ show v
   show MACRO = "macro"
 
 -- окружение есть ящик содержащий фрейm
-type Environment a = MVar (Frame a) 
+type Environment' a = MVar (Frame a) 
 -- фрейм из ящика окружения есть таблица связывания (Frame a)
 -- и новый ящик и объемлющего окружения (enclosing environment) 
-data Frame a = Frame a (Environment a)
+data Frame a = Frame a (Environment' a)
+--синонимы
+type Environment = Environment' Binding
+type Binding = Map.Map Name Value
+type Name = String --SExpr --Atom String 
+type Value = SExpr

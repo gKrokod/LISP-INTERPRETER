@@ -9,10 +9,11 @@ import qualified Handlers.Scope
 import qualified Handlers.Logger
 import qualified Handlers.Eval
 import qualified Scope.Scope
-import Scope.Scope (Binding)
+-- import Scope.Scope (Binding)
 import Parser (parseInput, clearComment)
 import Text.Parsec (parse)
 import qualified Data.Text.IO as TIO 
+import Types (Binding)
 
 
 main :: IO ()
@@ -25,6 +26,7 @@ main = do
           {   
             Handlers.Scope.makeLocalEnvironment = Scope.Scope.makeLocalEnvironment 
           , Handlers.Scope.clearEnvironment = undefined 
+          , Handlers.Scope.check = Scope.Scope.check
           }
 -- set Logger
   let handleLog =
@@ -46,14 +48,14 @@ main = do
   -- loop handle secondScope
 
 
-loop :: Handlers.Eval.Handle IO Binding -> Environment Binding -> IO ()
+loop :: Handlers.Eval.Handle IO -> Environment -> IO ()
 loop h env = do
   putStr ">>> "
   input <- clearComment <$> getLine
   case parse parseInput "lisp" input of
     Left e -> print e
     Right msg -> do
-      -- putStrLn "Right"
+      print msg 
       resultEval <- Handlers.Eval.eval h env msg
       print resultEval 
       -- pure ()
