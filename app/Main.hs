@@ -6,41 +6,57 @@ import qualified Data.Map as Map
 import Data.Foldable
 -- import qualified Handlers.Eval
 import qualified Handlers.Scope
+import qualified Handlers.Logger
+import qualified Handlers.Eval
 import qualified Scope.Scope
+import Scope.Scope (Binding)
+import Parser (parseInput, clearComment)
+import Text.Parsec (parse)
+import qualified Data.Text.IO as TIO 
 
 
 main :: IO ()
 main = do
-  global <- Scope.Scope.createEnvironment
-  firstScope <- Scope.Scope.makeLocalEnvironment global (Map.fromList [("pi", Number 3)])
-  secondScope <- Scope.Scope.makeLocalEnvironment firstScope (Map.fromList [("xi", Number 10)])
+-- make Scope
+  nilScope <- Scope.Scope.createEnvironment
+  globalScope <- Scope.Scope.makeLocalEnvironment nilScope (Map.fromList [("pi", Number 3)])
   let handleScope =
         Handlers.Scope.Handle
           {   
             Handlers.Scope.makeLocalEnvironment = Scope.Scope.makeLocalEnvironment 
           , Handlers.Scope.clearEnvironment = undefined 
           }
+-- set Logger
+  let handleLog =
+        Handlers.Logger.Handle
+          {   
+            Handlers.Logger.writeLog = \msg -> TIO.putStrLn $ "[LOG] " <> msg
+          }
+
+-- construct Eval
+  let handleEval =
+        Handlers.Eval.Handle
+          {   
+            Handlers.Eval.scope= handleScope
+          , Handlers.Eval.logger = handleLog
+          }
   print "main end"
+-- start Interpretator
+  loop handleEval globalScope
   -- loop handle secondScope
 
 
--- loop :: Handlers.Eval.Handle IO Binding -> Environment Binding -> IO ()
--- loop h env = do
---   msg <- readIOREPL
---   case msg of
---     Left e -> print e
---     Right p -> do 
---       -- newtok <- Handlers.Scope.evalSymbol h (Right p)
---       newtok <- Handlers.Eval.eval h env (Right p)
---       print "Result Eval: "
---       print newtok
---       print $ "Result Print:"
---       print p 
---       -- eEval <- evalIOREPL Map.empty (EvalToken p) 
---       -- case eEval of
---       --   Left e -> print e
---       --   Right (b, v) -> do
---       --     print b
---       --     print v --print ((evalREPL (EvalToken Map.empty p)) ) 
---   loop h env
+loop :: Handlers.Eval.Handle IO Binding -> Environment Binding -> IO ()
+loop h env = do
+  putStr ">>> "
+  input <- clearComment <$> getLine
+  case parse parseInput "lisp" input of
+    Left e -> print e
+    Right msg -> do
+      -- putStrLn "Right"
+      resultEval <- Handlers.Eval.eval h env msg
+      print resultEval 
+      -- pure ()
+  loop h env
+
 --
