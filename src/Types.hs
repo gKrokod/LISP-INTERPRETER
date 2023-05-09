@@ -3,23 +3,23 @@ import Control.Concurrent (MVar)
 import Data.List (intercalate)
 import qualified Data.Map.Strict as Map
 
-data SExpr = Atom String
-           | List [SExpr]
-           | Number Int 
-           | String String
-           | Bool Bool 
-           | SForm SF
-           | BOper BO
-           | BPrim BP deriving (Eq)
+data SExpr = Atom String  -- +
+           | List [SExpr] -- +
+           | Number Int  -- +
+           | String String -- +
+           | Bool Bool  -- +
+           | SForm SF -- +-
+           | BOper BO -- +
+           | BPrim BP deriving (Eq) -- +
 
-data SF    = DEF | SET | GET 
-           | QUOTE | TYPEOF 
-           | CONS | CAR | CDR | COND 
-           | IF 
-           | PRINT | READ 
-           | EVAL  | EVALIN | LAMBDA
-           | LAMBDA' [Name] Value Environment -- lambda args body -> lambda' args body env
-           | MACRO | MACROEXPAND deriving (Eq)
+data SF    = DEF | SET | GET  -- + + +
+           | QUOTE | TYPEOF -- + -
+           | CONS | CAR | CDR | COND -- - - - - 
+           | IF -- -
+           | PRINT | READ -- -
+           | EVAL  | EVALIN | LAMBDA -- - +-
+           | LAMBDA' [Name] Value Environment -- lambda args body -> lambda' args body env -- +
+           | MACRO | MACROEXPAND deriving (Eq) -- -
 
 data BO = ADD | SUB | MUL deriving (Eq, Ord)
 data BP = GT' | LT' | EQ' deriving (Eq, Ord)
@@ -61,7 +61,7 @@ instance Show SF where
   show EVAL = "eval"
   show EVALIN = "eval-in"
   show LAMBDA = "l"
-  show (LAMBDA' xs v e) = show xs  ++ show v
+  show (LAMBDA' xs v e) = "\\" ++ intercalate " " xs ++ " -> " ++ show v -- \x y z -> (+ x y z)
   show MACRO = "macro"
 
 -- окружение есть ящик содержащий фрейm

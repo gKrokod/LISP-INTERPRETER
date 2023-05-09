@@ -27,6 +27,8 @@ main = do
             Handlers.Scope.makeLocalEnvironment = Scope.Scope.makeLocalEnvironment 
           , Handlers.Scope.clearEnvironment = undefined 
           , Handlers.Scope.check = Scope.Scope.check
+          , Handlers.Scope.insert = Scope.Scope.insert
+          , Handlers.Scope.update = Scope.Scope.update
           }
 -- set Logger
   let handleLog =
@@ -58,6 +60,7 @@ loop h env = do
       print msg 
       resultEval <- Handlers.Eval.eval h env msg
       print resultEval 
+
       -- pure ()
   loop h env
 

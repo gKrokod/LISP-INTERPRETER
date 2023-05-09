@@ -42,20 +42,36 @@ check env name = do
         Nothing -> check env' name
         Just value -> pure $ Just value
 --
--- update :: Environment Binding -> Name -> Value -> IO ()
--- update env name value = insert env name value 
---
 -- insert :: Environment Binding -> Name -> Value -> IO ()
--- insert env name value = do 
---   isEmpty <- tryTakeMVar env
---   case isEmpty of
---     Nothing -> do 
---       -- putMVar m ()
---       -- возможно тут надо делать пут? хотя после тейк пустого места, там и должно быть пустоло
---       -- putMVar env (Frame b env')
---       newEmpty <-newEmptyMVar
---       putMVar env (Frame (Map.fromList [(name, value)]) newEmpty) 
---     Just (Frame binding env') -> do
---       let binding' = Map.insert name value binding
---       putMVar env (Frame binding' env')
---       -- seq binding' (pure $ Right $ TNil)
+insert :: Environment -> Name -> SExpr -> IO ()
+insert env name value = do 
+  isEmpty <- tryTakeMVar env
+  case isEmpty of
+    Nothing -> do 
+      -- putMVar m ()
+      -- возможно тут надо делать пут? хотя после тейк пустого места, там и должно быть пустоло
+      -- putMVar env (Frame b env')
+      newEmpty <-newEmptyMVar
+      putMVar env (Frame (Map.fromList [(name, value)]) newEmpty) 
+    Just (Frame binding env') -> do
+      let binding' = Map.insert name value binding
+      putMVar env (Frame binding' env')
+      seq binding' (pure ())
+      -- seq binding' (pure $ Right $ TNil)
+      
+update :: Environment -> Name -> SExpr -> IO (SExpr) -- Bool Bool -> #f, #t
+update env name value = do
+  isEmpty <- tryTakeMVar env
+  case isEmpty of
+    Nothing -> do 
+      pure $ Bool False
+    Just (Frame binding env') -> do
+      -- putMVar env (Frame binding env')
+      case Map.lookup name binding of
+        Nothing -> do
+          putMVar env (Frame binding env')
+          update env' name value
+        Just _ -> do
+          let binding' = Map.insert name value binding
+          putMVar env (Frame binding' env')
+          seq binding' (pure $ Bool True)
