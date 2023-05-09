@@ -87,7 +87,7 @@ eval h env (List (func : args)) = do
 
 apply :: (Monad m) => Handle m -> Environment -> SFunc -> m ([SExpr]) -> m SExpr
 apply h env (BOper f) xs = do
-  L.writeLog (logger h) "apply BOper func" 
+  L.writeLog (logger h) "apply BOper func. If empty list = error" 
   xs' <- xs
   case f of
     ADD -> pure $ foldl1' (\(Number x) (Number y) -> Number (x + y)) xs'
@@ -95,12 +95,24 @@ apply h env (BOper f) xs = do
     MUL -> pure $ foldl1' (\(Number x) (Number y) -> Number (x * y)) xs'
 -- Add Gt, LT, EQ for another Types
 apply h env (BPrim p) xs = do 
-  L.writeLog (logger h) "apply BPrim func" 
+  L.writeLog (logger h) "apply BPrim func.  If empty list = error" 
   xs' <- xs
   case p of
     GT' -> pure $ foldl1' (\(Number x) (Number y) -> Bool (x > y)) xs'
     LT' -> pure $ foldl1' (\(Number x) (Number y) -> Bool (x < y)) xs'
     EQ' -> pure $ foldl1' (\(Number x) (Number y) -> Bool (x == y)) xs'
+apply h env (SForm TYPEOF) xs = do 
+  L.writeLog (logger h) "apply type-of func. If empty list = error " 
+  x <- head <$> xs
+  case x of
+    Atom _ -> pure $ String "Atom"
+    List _ -> pure $ String "List"
+    Number _ -> pure $ String "Number"
+    String _ -> pure $ String "String"
+    Bool _ -> pure $ String "Bool"
+    SForm _ -> pure $ String "SForm"
+    BOper _ -> pure $ String "BOper"
+    BPrim _ -> pure $ String "BPrim"
 
 apply h env (SForm (LAMBDA' args body env')) xs = do
   L.writeLog (logger h) "lambda apply " 

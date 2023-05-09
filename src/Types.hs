@@ -13,11 +13,11 @@ data SExpr = Atom String  -- +
            | BPrim BP deriving (Eq) -- +
 
 data SF    = DEF | SET | GET  -- + + +
-           | QUOTE | TYPEOF -- + -
+           | QUOTE | TYPEOF -- + +
            | CONS | CAR | CDR | COND -- - - - - 
            | IF -- -
            | PRINT | READ -- -
-           | EVAL  | EVALIN | LAMBDA -- - +-
+           | EVAL  | EVALIN | LAMBDA -- - - +
            | LAMBDA' [Name] Value Environment -- lambda args body -> lambda' args body env -- +
            | MACRO | MACROEXPAND deriving (Eq) -- -
 
