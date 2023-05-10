@@ -64,7 +64,7 @@ parseAtom = do
     "def" -> SForm DEF
     "set!" -> SForm SET
     "get" -> SForm GET
-    "type-of" -> SForm TYPEOF
+    "typeof" -> SForm TYPEOF
     "cons" -> SForm CONS
     "car" -> SForm CAR
     "cdr" -> SForm CDR
@@ -74,8 +74,8 @@ parseAtom = do
     "print" -> SForm PRINT
     "eval" -> SForm EVAL
     "eval-in" -> SForm EVALIN
-    "l" -> SForm LAMBDA
-    "macro" -> SForm MACRO
+    "lam" -> SForm LAMBDA
+    "mac" -> SForm MACRO
     "+" -> BOper ADD
     "-" -> BOper SUB
     "*" -> BOper MUL

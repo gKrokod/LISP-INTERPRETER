@@ -19,7 +19,8 @@ data SF    = DEF | SET | GET  -- + + +
            | PRINT | READ -- + +
            | EVAL  | EVALIN | LAMBDA -- + - +
            | LAMBDA' [Name] Value Environment -- lambda args body -> lambda' args body env -- +
-           | MACRO | MACROEXPAND deriving (Eq) -- -
+           | MACRO 
+           | MACROEXPAND deriving (Eq) -- -
 
 data BO = ADD | SUB | MUL deriving (Eq, Ord)
 data BP = GT' | LT' | EQ' deriving (Eq, Ord)
