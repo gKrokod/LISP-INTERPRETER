@@ -14,10 +14,10 @@ data SExpr = Atom String  -- +
 
 data SF    = DEF | SET | GET  -- + + +
            | QUOTE | TYPEOF -- + +
-           | CONS | CAR | CDR | COND -- - - - - 
-           | IF -- -
-           | PRINT | READ -- -
-           | EVAL  | EVALIN | LAMBDA -- - - +
+           | CONS | CAR | CDR | COND -- + + + +
+           | IF --
+           | PRINT | READ -- + +
+           | EVAL  | EVALIN | LAMBDA -- + - +
            | LAMBDA' [Name] Value Environment -- lambda args body -> lambda' args body env -- +
            | MACRO | MACROEXPAND deriving (Eq) -- -
 

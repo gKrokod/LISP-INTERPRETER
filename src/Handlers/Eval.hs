@@ -13,8 +13,11 @@ type SFunc = SExpr -- SF, BO, BP
 data Handle m = Handle {
     scope :: Handlers.Scope.Handle m
   , logger :: Handlers.Logger.Handle m
+  , hPrint :: SExpr -> m ()
+  , hRead :: m (SExpr)
 }
 --elementary SExpr
+-- todo сделать вычисления BP and BO форм в самих себя, т.е. + вычислялся, чтобы в +
 eval :: (Monad m) => Handle m -> Environment -> SExpr -> m (SExpr)
 eval h env expr@(Number _) = do
   L.writeLog (logger h) "eval Number" 
@@ -34,12 +37,20 @@ eval h env (Atom symbol) = do
   case isSaved of
     Nothing -> pure $ Atom symbol
     Just v -> pure v
+--------------------------------------------------READ
+-- !!!exist apply h env (SForm READ) xs = do    for eval express : (read)
+eval h env (SForm READ) = do 
+  L.writeLog (logger h) "eval Read" 
+  hRead h
+-- --------------------------------------------------EVAL
+-- eval h env (List [SForm EVAL, val]) = do
+--   L.writeLog (logger h) "eval EVAL" 
+--   eval h env valpure val
 --------------------------------------------------QUOTE
 eval h env (List [Atom "quote", val]) = do
   L.writeLog (logger h) "eval quote" 
   pure val
- --                                         func SExpr
--- When func = SForm Lambda don't eval args and body.
+-- When func = SForm Lambda don't eval args and body. -- LAMBDA
 eval h env (List [SForm LAMBDA , args , body]) = do
   L.writeLog (logger h) "eval lambda" 
   pure $ SForm $ LAMBDA' (atomExprToName args) body env
@@ -56,6 +67,15 @@ eval h env (List [SForm GET, Atom name]) = do
   case isSaved of
     Nothing -> pure $ Bool False
     Just v -> pure v
+--------------------------------------------------COND
+eval h env (List (SForm COND : cond1 : other)) = do
+  L.writeLog (logger h) $ T.pack ("eval cond " ++ show cond1)
+  case cond1 of
+    List [p, r] -> do
+      p' <- eval h env p
+      if p' == Bool True then eval h env r
+      else eval h env (List (SForm COND : other))
+    -- _ -> undefined
 --------------------------------------------------SET
 eval h env (List [SForm SET, Atom name, value]) = do
   L.writeLog (logger h) $ T.pack ("eval set " ++ show name ++ " " ++ show value)
@@ -114,6 +134,45 @@ apply h env (SForm TYPEOF) xs = do
     BOper _ -> pure $ String "BOper"
     BPrim _ -> pure $ String "BPrim"
 
+apply h env (SForm CAR) xs = do 
+  L.writeLog (logger h) "apply car func. If empty list = error " 
+  x <- head <$> xs
+  case x of
+    List ( result : _) -> pure result
+    -- _ -> undefined
+  
+apply h env (SForm CDR) xs = do 
+  L.writeLog (logger h) "apply cdr func. If empty list = error " 
+  x <- head <$> xs
+  case x of
+    List ( _ : result) -> pure $ List result
+    -- _ -> undefined
+
+apply h env (SForm READ) xs = do 
+  L.writeLog (logger h) "apply read func." 
+  hRead h
+  
+apply h env (SForm PRINT) xs = do 
+  L.writeLog (logger h) "apply print func. If empty list = error " 
+  x <- head <$> xs
+  hPrint h x
+  pure $ Bool True
+
+apply h env (SForm CONS) xs = do 
+  L.writeLog (logger h) "apply cons func. error with no List arg " 
+  xs' <- xs
+  case xs' of
+    [a, (List as)] -> pure $ List (a : as)
+    -- _ -> undefined
+    
+apply h env (SForm EVAL) xs = do 
+  L.writeLog (logger h) "apply eval func. error with no List arg " 
+  x <- head <$> xs
+  eval h env x
+-- --------------------------------------------------EVAL
+-- eval h env (List [SForm EVAL, val]) = do
+--   L.writeLog (logger h) "eval EVAL" 
+--   eval h env valpure val
 apply h env (SForm (LAMBDA' args body env')) xs = do
   L.writeLog (logger h) "lambda apply " 
   xs' <- xs

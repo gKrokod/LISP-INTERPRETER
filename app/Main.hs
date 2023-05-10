@@ -8,6 +8,7 @@ import Data.Foldable
 import qualified Handlers.Scope
 import qualified Handlers.Logger
 import qualified Handlers.Eval
+import qualified Eval
 import qualified Scope.Scope
 -- import Scope.Scope (Binding)
 import Parser (parseInput, clearComment)
@@ -43,6 +44,8 @@ main = do
           {   
             Handlers.Eval.scope= handleScope
           , Handlers.Eval.logger = handleLog
+          , Handlers.Eval.hRead = Eval.hRead
+          , Handlers.Eval.hPrint = Eval.hPrint
           }
   print "main end"
 -- start Interpretator
@@ -57,7 +60,7 @@ loop h env = do
   case parse parseInput "lisp" input of
     Left e -> print e
     Right msg -> do
-      print msg 
+      -- print msg 
       resultEval <- Handlers.Eval.eval h env msg
       print resultEval 
 
