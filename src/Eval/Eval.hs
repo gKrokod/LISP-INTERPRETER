@@ -1,4 +1,4 @@
-module Eval where
+module Eval.Eval where
 import Types
 import Parser (parseInput, clearComment)
 import Text.Parsec (parse)

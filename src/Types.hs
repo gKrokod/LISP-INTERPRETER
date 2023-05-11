@@ -10,7 +10,7 @@ data SExpr = Atom String  -- +
            | Bool Bool  -- +
            | SForm SF -- +-
            | BOper BO -- +
-           | BPrim BP deriving (Eq) -- +
+           | BPrim BP deriving (Eq, Ord) -- +
 
 data SF    = DEF | SET | GET  -- + + +
            | QUOTE | TYPEOF -- + +
@@ -20,7 +20,15 @@ data SF    = DEF | SET | GET  -- + + +
            | EVAL  | EVALIN | LAMBDA -- + - +
            | LAMBDA' [Name] Value Environment -- lambda args body -> lambda' args body env -- +
            | MACRO 
-           | MACROEXPAND deriving (Eq) -- -
+           | MACRO' [MacroName] Value
+           | MACROEXPAND deriving (Eq, Ord) -- -
+
+-- для автоматического deriving data SF
+instance Ord (Environment) where
+  compare _ _ = EQ 
+
+type MacroEnvironment = Map.Map MacroName Value 
+type MacroName = SExpr
 
 data BO = ADD | SUB | MUL deriving (Eq, Ord)
 data BP = GT' | LT' | EQ' deriving (Eq, Ord)
@@ -37,7 +45,7 @@ instance Show BP where
   show EQ' = "=="
 
 instance Show SExpr where
-  show (Atom str) = str
+  show (Atom str) = "atom " ++ str
   show (List xs) = "(" ++ intercalate " " (map show xs) ++ ")"
   show (Number int) = show int
   show (String str) = "\"" ++ str ++ "\""
@@ -64,14 +72,17 @@ instance Show SF where
   show LAMBDA = "l"
   show (LAMBDA' xs v e) = "\\" ++ intercalate " " xs ++ " -> " ++ show v -- \x y z -> (+ x y z)
   show MACRO = "macro"
+  show (MACRO' xs v ) = "@\\" ++ intercalate " " [(show xs)] ++ " -> " ++ show v -- @\x y z -> (+ x y z)
+  
 
 -- окружение есть ящик содержащий фрейm
 type Environment' a = MVar (Frame a) 
 -- фрейм из ящика окружения есть таблица связывания (Frame a)
 -- и новый ящик и объемлющего окружения (enclosing environment) 
-data Frame a = Frame a (Environment' a)
+data Frame a = Frame a (Environment' a) 
 --синонимы
 type Environment = Environment' Binding
 type Binding = Map.Map Name Value
 type Name = String --SExpr --Atom String 
 type Value = SExpr
+

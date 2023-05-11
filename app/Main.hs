@@ -8,7 +8,7 @@ import Data.Foldable
 import qualified Handlers.Scope
 import qualified Handlers.Logger
 import qualified Handlers.Eval
-import qualified Eval
+import qualified Eval.Eval
 import qualified Scope.Scope
 -- import Scope.Scope (Binding)
 import Parser (parseInput, clearComment)
@@ -44,8 +44,8 @@ main = do
           {   
             Handlers.Eval.scope= handleScope
           , Handlers.Eval.logger = handleLog
-          , Handlers.Eval.hRead = Eval.hRead
-          , Handlers.Eval.hPrint = Eval.hPrint
+          , Handlers.Eval.hRead = Eval.Eval.hRead
+          , Handlers.Eval.hPrint = Eval.Eval.hPrint
           }
   print "main end"
 -- start Interpretator

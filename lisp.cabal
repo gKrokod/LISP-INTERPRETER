@@ -25,7 +25,8 @@ source-repository head
 
 library
   exposed-modules:
-      Eval
+      Eval.Eval
+      Eval.Macros
       Handlers.Eval
       Handlers.Logger
       Handlers.Scope
