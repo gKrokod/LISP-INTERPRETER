@@ -17,7 +17,8 @@ data Handle m = Handle {
   , hRead :: m (SExpr)
 }
 --elementary SExpr
--- todo сделать вычисления BP and BO форм в самих себя, т.е. + вычислялся, чтобы в +
+-- todo сделать вычисления BP and BO форм в самих себя, т.е. (+) вычислялся, чтобы в +
+-- или падать?
 eval :: (Monad m) => Handle m -> Environment -> SExpr -> m (SExpr)
 eval h env expr@(Number _) = do
   L.writeLog (logger h) "eval Number" 
@@ -81,8 +82,17 @@ eval h env (List [SForm SET, Atom name, value]) = do
   L.writeLog (logger h) $ T.pack ("eval set " ++ show name ++ " " ++ show value)
   value' <- eval h env value -- vopros nado li vuchislat disskusionnuj
   S.update (scope h) env name value'
+-- --------------------------------------------------EVAL INT -- WARNING. возможно работает неправильно
+eval h env (List (SForm EVALIN : lambdaKey : args)) = do
+  L.writeLog (logger h) $ T.pack ("eval in II variant")
+  lambda' <- eval h env lambdaKey
+  case lambda' of
+    SForm (LAMBDA' _ _ env') -> do
+      L.writeLog (logger h) $ "GOT IT LAMBDA'" 
+      eval h env' (List (SForm EVAL : args)) 
+    _ -> error "evalin form"
 --------------------------------------------------LIST other
--- vuchislaen golovnyy formy do konza, esli ne spisok i ne atom, to evalit nechego mnogo raz
+-- вычисляем головную форму много раз для атома и списка. Если попадается макрос, то раскрываем его.
 eval h env (List (func : args)) = do
   L.writeLog (logger h) $ T.pack ("eval list other " ++ show func)
   case func of
@@ -104,33 +114,48 @@ eval h env (List (func : args)) = do
         eval h env (List (func' : args))
     (SForm (MACRO' macroArgs body)) -> do
       L.writeLog (logger h) "eval MACRO'"
-      L.writeLog (logger h) $ T.pack $ "macroArgs: " ++ show macroArgs 
-      L.writeLog (logger h) $ T.pack $ "vveli v macros args: " ++ show args 
+      -- L.writeLog (logger h) $ T.pack $ "macroArgs: " ++ show macroArgs 
+      -- L.writeLog (logger h) $ T.pack $ "vveli v macros args: " ++ show args 
       let macroTable = Map.fromList $ zip macroArgs args
-      L.writeLog (logger h) $ T.pack $ "macroTable: " ++ show macroTable
+      -- L.writeLog (logger h) $ T.pack $ "macroTable: " ++ show macroTable
       let body' = mExpand macroTable body
       L.writeLog (logger h) $ T.pack $ "MACROEXPAND: " ++ show body'
       eval h env body'
     otherwise -> apply h env func (mapM (eval h env) args)
 
 mExpand :: MacroEnvironment -> SExpr -> SExpr
+mExpand mEnv expr@(List [SForm LAMBDA, args, body]) = case Map.lookup expr mEnv of
+  Just expr' -> expr'
+  Nothing -> List [SForm LAMBDA, args, (mExpand mEnv' body)] 
+    where mEnv' = Map.filterWithKey (\k _ -> k `notElem` dict ) mEnv 
+          dict  = atomExprToMacroName args
+mExpand mEnv expr@(List [SForm MACRO, args, body]) = case Map.lookup expr mEnv of
+  Just expr' -> expr'
+  Nothing -> List [SForm MACRO, args, (mExpand mEnv' body)] 
+    where mEnv' = Map.filterWithKey (\k _ -> k `notElem` dict ) mEnv 
+          dict  = atomExprToMacroName args
+-- Скорее всего macro' никогда не встретится
+mExpand mEnv expr@(SForm (MACRO' macroArgs body)) = case Map.lookup expr mEnv of
+  Just expr' -> expr'
+  Nothing -> SForm $ MACRO' macroArgs (mExpand mEnv' body)
+    where mEnv' = Map.filterWithKey (\k _ -> k `notElem` dict ) mEnv 
+          dict  = macroArgs
 -- skoree vsego lambda' никогда не встретится
 mExpand mEnv expr@(SForm (LAMBDA' args body env)) = case Map.lookup expr mEnv of
   Just expr' -> expr'
   Nothing -> SForm $ LAMBDA' args (mExpand mEnv' body) env 
     where mEnv' = Map.filterWithKey (\k _ -> k `notElem` dict ) mEnv 
           dict  = map Atom args
-mExpand mEnv expr@(List [SForm LAMBDA, args, body]) = case Map.lookup expr mEnv of
-  Just expr' -> expr'
-  Nothing -> List [SForm LAMBDA, args, (mExpand mEnv' body)] 
-    where mEnv' = Map.filterWithKey (\k _ -> k `notElem` dict ) mEnv 
-          dict  = atomExprToMacroName args
 mExpand mEnv expr@(List xs) = case Map.lookup expr mEnv of
   Just expr' -> expr'
   Nothing -> List $ map (mExpand mEnv) xs
 mExpand mEnv expr = case Map.lookup expr mEnv of
   Nothing -> expr
   Just expr' -> expr'
+
+-- eval h env (List [SForm MACRO , args , body]) = do
+--   L.writeLog (logger h) "eval macro" 
+--   pure $ SForm $ MACRO' (atomExprToMacroName args) body 
 
 -- eval h env (List [SForm LAMBDA , args , body]) = do
 apply :: (Monad m) => Handle m -> Environment -> SFunc -> m ([SExpr]) -> m SExpr

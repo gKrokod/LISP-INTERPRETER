@@ -17,10 +17,11 @@ data SF    = DEF | SET | GET  -- + + +
            | CONS | CAR | CDR | COND -- + + + +
            | IF --
            | PRINT | READ -- + +
-           | EVAL  | EVALIN | LAMBDA -- + - +
+           | EVAL  | LAMBDA -- + - +
            | LAMBDA' [Name] Value Environment -- lambda args body -> lambda' args body env -- +
            | MACRO 
            | MACRO' [MacroName] Value
+           | EVALIN
            | MACROEXPAND deriving (Eq, Ord) -- -
 
 -- для автоматического deriving data SF
