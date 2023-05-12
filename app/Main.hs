@@ -63,6 +63,7 @@ main = do
   loop handleEval globalScope
   -- loop handle secondScope
 
+prettyPrinter ::
 
 loop :: Handlers.Eval.Handle IO -> Environment -> IO ()
 loop h env = do

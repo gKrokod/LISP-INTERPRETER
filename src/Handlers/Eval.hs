@@ -7,6 +7,9 @@ import Types
 import Data.List (foldl1')
 import qualified Data.Map as Map
 import qualified Data.Text as T
+import Eval.Macros (mExpand, atomExprToMacroName)
+import Eval.Eval (atomExprToName)
+import Data.Function
 
 type SFunc = SExpr -- SF, BO, BP
 
@@ -123,57 +126,45 @@ eval h env (List (func : args)) = do
       eval h env body'
     otherwise -> apply h env func (mapM (eval h env) args)
 
-mExpand :: MacroEnvironment -> SExpr -> SExpr
-mExpand mEnv expr@(List [SForm LAMBDA, args, body]) = case Map.lookup expr mEnv of
-  Just expr' -> expr'
-  Nothing -> List [SForm LAMBDA, args, (mExpand mEnv' body)] 
-    where mEnv' = Map.filterWithKey (\k _ -> k `notElem` dict ) mEnv 
-          dict  = atomExprToMacroName args
-mExpand mEnv expr@(List [SForm MACRO, args, body]) = case Map.lookup expr mEnv of
-  Just expr' -> expr'
-  Nothing -> List [SForm MACRO, args, (mExpand mEnv' body)] 
-    where mEnv' = Map.filterWithKey (\k _ -> k `notElem` dict ) mEnv 
-          dict  = atomExprToMacroName args
--- Скорее всего macro' никогда не встретится
-mExpand mEnv expr@(SForm (MACRO' macroArgs body)) = case Map.lookup expr mEnv of
-  Just expr' -> expr'
-  Nothing -> SForm $ MACRO' macroArgs (mExpand mEnv' body)
-    where mEnv' = Map.filterWithKey (\k _ -> k `notElem` dict ) mEnv 
-          dict  = macroArgs
--- skoree vsego lambda' никогда не встретится
-mExpand mEnv expr@(SForm (LAMBDA' args body env)) = case Map.lookup expr mEnv of
-  Just expr' -> expr'
-  Nothing -> SForm $ LAMBDA' args (mExpand mEnv' body) env 
-    where mEnv' = Map.filterWithKey (\k _ -> k `notElem` dict ) mEnv 
-          dict  = map Atom args
-mExpand mEnv expr@(List xs) = case Map.lookup expr mEnv of
-  Just expr' -> expr'
-  Nothing -> List $ map (mExpand mEnv) xs
-mExpand mEnv expr = case Map.lookup expr mEnv of
-  Nothing -> expr
-  Just expr' -> expr'
+unBoxNumber :: SExpr -> Int 
+unBoxNumber (Number x) = x
+unBoxString :: SExpr -> String 
+unBoxString (String x) = x
+unBoxBool :: SExpr -> Bool 
+unBoxBool (Bool x) = x
+unBoxAtom :: SExpr -> String 
+unBoxAtom (Atom x) = x
+unBoxList :: SExpr -> SExpr
+unBoxList (List xs) = xs
 
--- eval h env (List [SForm MACRO , args , body]) = do
---   L.writeLog (logger h) "eval macro" 
---   pure $ SForm $ MACRO' (atomExprToMacroName args) body 
 
--- eval h env (List [SForm LAMBDA , args , body]) = do
 apply :: (Monad m) => Handle m -> Environment -> SFunc -> m ([SExpr]) -> m SExpr
 apply h env (BOper f) xs = do
   L.writeLog (logger h) "apply BOper func. If empty list = error" 
   xs' <- xs
+  let unboxXs = map unBoxNumber xs'
   case f of
-    ADD -> pure $ foldl1' (\(Number x) (Number y) -> Number (x + y)) xs'
-    SUB -> pure $ foldl1' (\(Number x) (Number y) -> Number (x - y)) xs'
-    MUL -> pure $ foldl1' (\(Number x) (Number y) -> Number (x * y)) xs'
+    ADD -> pure $ Number $ foldl1' (+) unboxXs
+    SUB -> pure $ Number $ foldl1' (-) unboxXs
+    MUL -> pure $ Number $ foldl1' (*) unboxXs
 -- Add Gt, LT, EQ for another Types
 apply h env (BPrim p) xs = do 
   L.writeLog (logger h) "apply BPrim func.  If empty list = error" 
   xs' <- xs
-  case p of
-    GT' -> pure $ foldl1' (\(Number x) (Number y) -> Bool (x > y)) xs'
-    LT' -> pure $ foldl1' (\(Number x) (Number y) -> Bool (x < y)) xs'
-    EQ' -> pure $ foldl1' (\(Number x) (Number y) -> Bool (x == y)) xs'
+  let (x, y) = (head xs', last xs')
+  case (x, y, p) of
+    (Number _, _, GT') -> pure $ Bool $ ((>) `on` unBoxNumber) x y
+    (String _, _,GT') -> pure $ Bool $ ((>) `on` unBoxString) x y
+    (Bool _, _, GT')   -> pure $ Bool $ ((>) `on` unBoxBool) x y
+    (Number _, _, LT') -> pure $ Bool $ ((<) `on` unBoxNumber) x y
+    (String _, _, LT') -> pure $ Bool $ ((<) `on` unBoxString) x y
+    (Bool _, _, LT') -> pure $ Bool $ ((<) `on` unBoxBool) x y
+    (Number _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxNumber) x y
+    (String _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxString) x y
+    (Bool _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxBool) x y
+    (Atom _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxAtom) x y
+    (List as, List bs, EQ') ->
+   
 apply h env (SForm TYPEOF) xs = do 
   L.writeLog (logger h) "apply type-of func. If empty list = error " 
   x <- head <$> xs
@@ -234,12 +225,4 @@ apply h env func xs = do
   xs' <- xs
   if null xs' then pure func
               else pure $ last xs'
--- перевод из символов в именя для привязывания переменных в мапке 
-atomExprToName :: SExpr -> [Name]
-atomExprToName (Atom str) = [str]
-atomExprToName (List xs) = concatMap atomExprToName xs
-
-atomExprToMacroName :: SExpr -> [MacroName]
-atomExprToMacroName (List xs) = xs --concatMap atomExprToMacroName xs
-atomExprToMacroName expr = [expr]
 

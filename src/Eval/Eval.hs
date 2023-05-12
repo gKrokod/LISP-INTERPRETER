@@ -9,6 +9,11 @@ import Text.Parsec (parse)
 --   , hRead :: m (SExpr)
 -- }
 --
+--
+atomExprToName :: SExpr -> [Name]
+atomExprToName (Atom str) = [str]
+atomExprToName (List xs) = concatMap atomExprToName xs
+
 hPrint :: SExpr -> IO ()
 hPrint = print 
 
