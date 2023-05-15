@@ -17,6 +17,22 @@ createEnvironment = newEmptyMVar
 makeLocalEnvironment :: Environment' a -> a -> IO (Environment' a)
 makeLocalEnvironment env binding = newMVar (Frame binding env)
 
+fullLocalEnvironment :: (Monoid a) => Environment' a -> a -> IO ()
+fullLocalEnvironment env binding = do 
+  isEmpty <- tryTakeMVar env
+  case isEmpty of
+    Nothing -> do 
+      -- putMVar m ()
+      -- возможно тут надо делать пут? хотя после тейк пустого места, там и должно быть пустоло
+      -- putMVar env (Frame b env')
+      newEmpty <-newEmptyMVar
+      putMVar env (Frame binding newEmpty) 
+    Just (Frame bindingOld env') -> do
+      let binding' = binding <> bindingOld
+      putMVar env (Frame binding' env')
+      seq binding' (pure ())
+      -- seq binding' (pure $ Right $ TNil)
+
 -- Пробегаемся по всем скоупам и выводим биндинги наши
 printAllEnvironment :: Environment' a -> IO [a]
 printAllEnvironment env = do

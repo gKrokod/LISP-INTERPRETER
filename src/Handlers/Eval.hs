@@ -50,10 +50,16 @@ eval h env (SForm READ) = do
 eval h env (List [Atom "quote", val]) = do
   L.writeLog (logger h) "eval quote" 
   pure val
--- When func = SForm Lambda don't eval args and body. -- LAMBDA
+-- ------------------------------------------ LAMBDA
+-- версия первая, когда окружение не создавали
+-- eval h env (List [SForm LAMBDA , args , body]) = do
+--   L.writeLog (logger h) "eval lambda and don't make env" 
+--   pure $ SForm $ LAMBDA' (atomExprToName args) body env
+-- весрия для эвали Ин, когда сразу создается окружение.
 eval h env (List [SForm LAMBDA , args , body]) = do
-  L.writeLog (logger h) "eval lambda" 
-  pure $ SForm $ LAMBDA' (atomExprToName args) body env
+  L.writeLog (logger h) "eval lambda and make env" 
+  newEnv <- S.makeLocalEnvironment (scope h) env (Map.empty)
+  pure $ SForm $ LAMBDA' (atomExprToName args) body newEnv
 ----------------------------------------------------------MACRO
 eval h env (List [SForm MACRO , args , body]) = do
   L.writeLog (logger h) "eval macro" 
@@ -134,8 +140,8 @@ unBoxBool :: SExpr -> Bool
 unBoxBool (Bool x) = x
 unBoxAtom :: SExpr -> String 
 unBoxAtom (Atom x) = x
-unBoxList :: SExpr -> SExpr
-unBoxList (List xs) = xs
+-- unBoxList :: SExpr -> SExpr
+-- unBoxList (List xs) = xs
 
 
 apply :: (Monad m) => Handle m -> Environment -> SFunc -> m ([SExpr]) -> m SExpr
@@ -163,7 +169,7 @@ apply h env (BPrim p) xs = do
     (String _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxString) x y
     (Bool _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxBool) x y
     (Atom _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxAtom) x y
-    (List as, List bs, EQ') ->
+    -- (List as, List bs, EQ') ->
    
 apply h env (SForm TYPEOF) xs = do 
   L.writeLog (logger h) "apply type-of func. If empty list = error " 
@@ -213,13 +219,22 @@ apply h env (SForm EVAL) xs = do
   L.writeLog (logger h) "apply eval func. error with no List arg " 
   x <- head <$> xs
   eval h env x
-
+-------------------------------------------------- LABMDA' Две верси
+-- версия первая
+-- apply h env (SForm (LAMBDA' args body env')) xs = do
+--   L.writeLog (logger h) "lambda apply and make env " 
+--   xs' <- xs
+--   newEnv <- S.makeLocalEnvironment (scope h) env' (Map.fromList $ zip args xs')
+--   eval h newEnv body
+-- версия для Эвал ин , когда окружение создается при отсутсвии фактических параметров
 apply h env (SForm (LAMBDA' args body env')) xs = do
-  L.writeLog (logger h) "lambda apply " 
+  L.writeLog (logger h) "lambda apply and don't make env" 
   xs' <- xs
-  newEnv <- S.makeLocalEnvironment (scope h) env' (Map.fromList $ zip args xs')
-  eval h newEnv body
+  -- mapM_ (\(name, sexpr) -> S.insert (scope h) env' name sexpr) (zip args xs')
+  S.fullLocalEnvironment (scope h) env' (Map.fromList $ zip args xs')
+  eval h env' body
 --Esli nichego ne nashli, verni poslednij resultat
+--
 apply h env func xs = do
   L.writeLog (logger h) "last chance apply, haven't func " 
   xs' <- xs

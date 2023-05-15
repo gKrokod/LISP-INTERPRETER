@@ -37,6 +37,7 @@ main = do
         Handlers.Scope.Handle
           {   
             Handlers.Scope.makeLocalEnvironment = Scope.Scope.makeLocalEnvironment 
+          , Handlers.Scope.fullLocalEnvironment = Scope.Scope.fullLocalEnvironment 
           , Handlers.Scope.clearEnvironment = undefined 
           , Handlers.Scope.check = Scope.Scope.check
           , Handlers.Scope.insert = Scope.Scope.insert
@@ -46,6 +47,7 @@ main = do
   let handleLog =
         Handlers.Logger.Handle
           {   
+            -- Handlers.Logger.writeLog = \msg -> pure ()
             Handlers.Logger.writeLog = \msg -> TIO.putStrLn $ "[LOG] " <> msg
           }
 
@@ -63,7 +65,7 @@ main = do
   loop handleEval globalScope
   -- loop handle secondScope
 
-prettyPrinter ::
+-- prettyPrinter ::
 
 loop :: Handlers.Eval.Handle IO -> Environment -> IO ()
 loop h env = do
