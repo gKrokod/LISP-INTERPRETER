@@ -46,7 +46,7 @@ instance Show BP where
   show EQ' = "=="
 
 instance Show SExpr where
-  show (Atom str) = "atom " ++ str
+  show (Atom str) = str --"atom " ++ str
   show (List xs) = "(" ++ intercalate " " (map show xs) ++ ")"
   show (Number int) = show int
   show (String str) = "\"" ++ str ++ "\""

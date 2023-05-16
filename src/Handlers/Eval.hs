@@ -52,14 +52,14 @@ eval h env (List [Atom "quote", val]) = do
   pure val
 -- ------------------------------------------ LAMBDA
 -- версия первая, когда окружение не создавали
--- eval h env (List [SForm LAMBDA , args , body]) = do
---   L.writeLog (logger h) "eval lambda and don't make env" 
---   pure $ SForm $ LAMBDA' (atomExprToName args) body env
--- весрия для эвали Ин, когда сразу создается окружение.
 eval h env (List [SForm LAMBDA , args , body]) = do
-  L.writeLog (logger h) "eval lambda and make env" 
-  newEnv <- S.makeLocalEnvironment (scope h) env (Map.empty)
-  pure $ SForm $ LAMBDA' (atomExprToName args) body newEnv
+  L.writeLog (logger h) "eval lambda and don't make env" 
+  pure $ SForm $ LAMBDA' (atomExprToName args) body env
+-- весрия для эвали Ин, когда сразу создается окружение.
+-- eval h env (List [SForm LAMBDA , args , body]) = do
+--   L.writeLog (logger h) "eval lambda and make env" 
+--   newEnv <- S.makeLocalEnvironment (scope h) env (Map.empty)
+--   pure $ SForm $ LAMBDA' (atomExprToName args) body newEnv
 ----------------------------------------------------------MACRO
 eval h env (List [SForm MACRO , args , body]) = do
   L.writeLog (logger h) "eval macro" 
@@ -91,7 +91,7 @@ eval h env (List [SForm SET, Atom name, value]) = do
   L.writeLog (logger h) $ T.pack ("eval set " ++ show name ++ " " ++ show value)
   value' <- eval h env value -- vopros nado li vuchislat disskusionnuj
   S.update (scope h) env name value'
--- --------------------------------------------------EVAL INT -- WARNING. возможно работает неправильно
+-- --------------------------------------------------EVAL IN -- WARNING. возможно работает неправильно
 eval h env (List (SForm EVALIN : lambdaKey : args)) = do
   L.writeLog (logger h) $ T.pack ("eval in II variant")
   lambda' <- eval h env lambdaKey
@@ -221,18 +221,18 @@ apply h env (SForm EVAL) xs = do
   eval h env x
 -------------------------------------------------- LABMDA' Две верси
 -- версия первая
--- apply h env (SForm (LAMBDA' args body env')) xs = do
---   L.writeLog (logger h) "lambda apply and make env " 
---   xs' <- xs
---   newEnv <- S.makeLocalEnvironment (scope h) env' (Map.fromList $ zip args xs')
---   eval h newEnv body
--- версия для Эвал ин , когда окружение создается при отсутсвии фактических параметров
 apply h env (SForm (LAMBDA' args body env')) xs = do
-  L.writeLog (logger h) "lambda apply and don't make env" 
+  L.writeLog (logger h) "lambda apply and make env " 
   xs' <- xs
-  -- mapM_ (\(name, sexpr) -> S.insert (scope h) env' name sexpr) (zip args xs')
-  S.fullLocalEnvironment (scope h) env' (Map.fromList $ zip args xs')
-  eval h env' body
+  newEnv <- S.makeLocalEnvironment (scope h) env' (Map.fromList $ zip args xs')
+  eval h newEnv body
+-- версия для Эвал ин , когда окружение создается при отсутсвии фактических параметров
+-- apply h env (SForm (LAMBDA' args body env')) xs = do
+--   L.writeLog (logger h) "lambda apply and don't make env" 
+--   xs' <- xs
+--   -- mapM_ (\(name, sexpr) -> S.insert (scope h) env' name sexpr) (zip args xs')
+--   S.fullLocalEnvironment (scope h) env' (Map.fromList $ zip args xs')
+--   eval h env' body
 --Esli nichego ne nashli, verni poslednij resultat
 --
 apply h env func xs = do
