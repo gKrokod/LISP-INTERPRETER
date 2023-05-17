@@ -47,8 +47,8 @@ main = do
   let handleLog =
         Handlers.Logger.Handle
           {   
-            Handlers.Logger.writeLog = \msg -> pure ()
-            -- Handlers.Logger.writeLog = \msg -> TIO.putStrLn $ "[LOG] " <> msg
+            -- Handlers.Logger.writeLog = \msg -> pure ()
+            Handlers.Logger.writeLog = \msg -> TIO.putStrLn $ "[LOG] " <> msg
           }
 
 -- construct Eval
@@ -65,18 +65,40 @@ main = do
   loop handleEval globalScope
   -- loop handle secondScope
 
--- prettyPrinter ::
+
+fi h env x = 
+    case parse parseInput "lisp" (x) of
+      Left e -> print e
+      Right msg -> do
+        -- print msg 
+        resultEval <- Handlers.Eval.eval h env msg
+        print resultEval 
+
+
 
 loop :: Handlers.Eval.Handle IO -> Environment -> IO ()
 loop h env = do
   putStr ">>> "
   input <- clearComment <$> getLine
-  case parse parseInput "lisp" input of
-    Left e -> print e
-    Right msg -> do
-      -- print msg 
-      resultEval <- Handlers.Eval.eval h env msg
-      print resultEval 
+  if input == "file" then do
+    fileInput <- readFile "Library/Test.lisp"  
+    -- print fileInput
+    let fInput = filter (not . null) $ lines $ clearComment fileInput
+    mapM_ putStrLn fInput
+    mapM_ (fi h env) fInput
+    -- case parse parseInput "lisp" (fInput) of
+    --   Left e -> print e
+    --   Right msg -> do
+    --     -- print msg 
+    --     resultEval <- Handlers.Eval.eval h env msg
+    --     print resultEval 
+  else 
+    case parse parseInput "lisp" input of
+      Left e -> print e
+      Right msg -> do
+        -- print msg 
+        resultEval <- Handlers.Eval.eval h env msg
+        print resultEval 
 
       -- pure ()
   loop h env

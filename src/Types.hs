@@ -70,7 +70,7 @@ instance Show SF where
   show PRINT = "print"
   show EVAL = "eval"
   show EVALIN = "eval-in"
-  show LAMBDA = "l"
+  show LAMBDA = "lambda"
   show (LAMBDA' xs v e) = "\\" ++ intercalate " " xs ++ " -> " ++ show v -- \x y z -> (+ x y z)
   show MACRO = "macro"
   show (MACRO' xs v ) = "@\\" ++ intercalate " " [(show xs)] ++ " -> " ++ show v -- @\x y z -> (+ x y z)

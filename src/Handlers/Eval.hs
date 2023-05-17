@@ -169,7 +169,9 @@ apply h env (BPrim p) xs = do
     (String _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxString) x y
     (Bool _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxBool) x y
     (Atom _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxAtom) x y
-    -- (List as, List bs, EQ') ->
+    (List [], List [], EQ') -> pure $ Bool True 
+    (List as, List bs, EQ') -> pure $ Bool False 
+    -- (List as, List bs, EQ') -> pure $ Bool False 
    
 apply h env (SForm TYPEOF) xs = do 
   L.writeLog (logger h) "apply type-of func. If empty list = error " 
