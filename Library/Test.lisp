@@ -1,20 +1,11 @@
-(def plus2 (lambda x (+ 2 x)))
+;(macro (x y z) ('(x y z))) a b ( c d); 
+; этот макрос работает = macroexpand (('( a b (c d))));
 
-(def mplus2 (macro x (+ 2 x)))
+(macro (x y) ( (macro (x) (+ x y)) 1 ) ) a b
 
-(def defn (macro (name args body) (def name (lambda args body))))
+;(macro (x y z) ( (macro (z) '(+ x y z)) '1 '2 ) )  a b (c d);
 
+;(macro (x y z) ( (macro (z) (+ x y a)) 1 ) ) 10 2 a ;
 
-(defn plus x (+ x 1))
+; (def defn (macro (name args body) (def name (lambda args body)))) ;
 
-; (def x 100) ;
-
-; (def y 400) ;
-
-; (def nil '()) ;
-
-(def bb 30)
-
-; (def x5 '((macro (x) (cond (((< x 5) #t) (#t #f)))) x)) ;
-
-(def aa 20)

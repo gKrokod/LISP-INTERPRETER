@@ -10,11 +10,11 @@
 --  Сделать pretty printer
 --  перенести в файл macro чистые функции
 module Main (main) where
-import Types
-import Parser
+import Types (Environment, SExpr(..))
+-- import Parser
 
 import qualified Data.Map as Map
-import Data.Foldable
+-- import Data.Foldable 
 -- import qualified Handlers.Eval
 import qualified Handlers.Scope
 import qualified Handlers.Logger
@@ -25,8 +25,8 @@ import qualified Scope.Scope
 import Parser (parseInput, clearComment)
 import Text.Parsec (parse)
 import qualified Data.Text.IO as TIO 
-import Types (Binding)
-
+-- import Types (Binding)
+import Control.Exception (SomeException, try, evaluate, PatternMatchFail)
 
 main :: IO ()
 main = do
@@ -60,12 +60,12 @@ main = do
           , Handlers.Eval.hRead = Eval.Eval.hRead
           , Handlers.Eval.hPrint = Eval.Eval.hPrint
           }
-  print "main end"
+  putStrLn "main end"  
 -- start Interpretator
   loop handleEval globalScope
   -- loop handle secondScope
 
-
+fi :: Handlers.Eval.Handle IO -> Environment -> String -> IO ()
 fi h env x = 
     case parse parseInput "lisp" (x) of
       Left e -> print e
@@ -73,7 +73,6 @@ fi h env x =
         -- print msg 
         resultEval <- Handlers.Eval.eval h env msg
         print resultEval 
-
 
 
 loop :: Handlers.Eval.Handle IO -> Environment -> IO ()
@@ -92,14 +91,22 @@ loop h env = do
     --     -- print msg 
     --     resultEval <- Handlers.Eval.eval h env msg
     --     print resultEval 
-  else 
+  else  
     case parse parseInput "lisp" input of
       Left e -> print e
       Right msg -> do
         -- print msg 
-        resultEval <- Handlers.Eval.eval h env msg
-        print resultEval 
-
+       -- пишут, что надо обязательно evaluate писать, мол без него легко не словить ошибку, ну не знаю пока
+        -- resultEval <- try @PatternMatchFail $ evaluate (Handlers.Eval.eval h env msg)
+        resultEval <- try @PatternMatchFail (Handlers.Eval.eval h env msg)
+        case resultEval of
+          Left e -> do
+            print e--(e :: PatternMatchFail)
+            putStrLn "exception pattern \n"
+            loop h env
+          Right r1 -> do 
+            putStrLn "exception right"
+            print r1
       -- pure ()
   loop h env
 

@@ -10,6 +10,7 @@ import qualified Data.Text as T
 import Eval.Macros (mExpand, atomExprToMacroName)
 import Eval.Eval (atomExprToName)
 import Data.Function
+import Control.Exception (SomeException, try, evaluate)
 
 type SFunc = SExpr -- SF, BO, BP
 
@@ -134,6 +135,8 @@ eval h env (List (func : args)) = do
 
 unBoxNumber :: SExpr -> Int 
 unBoxNumber (Number x) = x
+unBoxNumber _ = error "not Number"
+
 unBoxString :: SExpr -> String 
 unBoxString (String x) = x
 unBoxBool :: SExpr -> Bool 
