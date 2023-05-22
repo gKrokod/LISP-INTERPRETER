@@ -124,10 +124,10 @@ eval h env (List (func : args)) = do
         eval h env (List (func' : args))
     (SForm (MACRO' macroArgs body)) -> do
       L.writeLog (logger h) "eval MACRO'"
-      -- L.writeLog (logger h) $ T.pack $ "macroArgs: " ++ show macroArgs 
-      -- L.writeLog (logger h) $ T.pack $ "vveli v macros args: " ++ show args 
+      L.writeLog (logger h) $ T.pack $ "macroArgs: " ++ show macroArgs 
+      L.writeLog (logger h) $ T.pack $ "vveli v macros args: " ++ show args 
       let macroTable = Map.fromList $ zip macroArgs args
-      -- L.writeLog (logger h) $ T.pack $ "macroTable: " ++ show macroTable
+      L.writeLog (logger h) $ T.pack $ "macroTable: " ++ show macroTable
       let body' = mExpand macroTable body
       L.writeLog (logger h) $ T.pack $ "MACROEXPAND: " ++ show body'
       eval h env body'
