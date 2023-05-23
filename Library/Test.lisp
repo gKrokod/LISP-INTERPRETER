@@ -5,6 +5,10 @@
 
 (macro (x y) ( (lambda (x) (+ x y)) 2 ) ) 100 (+ 10 2)
 
+(macro name ( (lambda name (+ x y)) 2 3) ) (x y)
+
+(macro name ( (macro name (+ x y)) 2 3) ) (x y)
+
 ; ((macro (x y z) '((x y z))) a b (c d));
 
 

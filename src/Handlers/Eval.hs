@@ -53,7 +53,7 @@ eval h env (List [Atom "quote", val]) = do
   pure val
 -- ------------------------------------------ LAMBDA
 -- версия первая, когда окружение не создавали
-eval h env (List [SForm LAMBDA , args , body]) = do
+eval h env (List [SForm LAMBDA, args , body]) = do
   L.writeLog (logger h) "eval lambda and don't make env" 
   pure $ SForm $ LAMBDA' (atomExprToName args) body env
 -- весрия для эвали Ин, когда сразу создается окружение.
@@ -62,7 +62,7 @@ eval h env (List [SForm LAMBDA , args , body]) = do
 --   newEnv <- S.makeLocalEnvironment (scope h) env (Map.empty)
 --   pure $ SForm $ LAMBDA' (atomExprToName args) body newEnv
 ----------------------------------------------------------MACRO
-eval h env (List [SForm MACRO , args , body]) = do
+eval h env (List [SForm MACRO, args , body]) = do
   L.writeLog (logger h) "eval macro" 
   pure $ SForm $ MACRO' (atomExprToMacroName args) body 
 --------------------------------------------------DEF
@@ -124,10 +124,10 @@ eval h env (List (func : args)) = do
         eval h env (List (func' : args))
     (SForm (MACRO' macroArgs body)) -> do
       L.writeLog (logger h) "eval MACRO'"
-      L.writeLog (logger h) $ T.pack $ "macroArgs: " ++ show macroArgs 
-      L.writeLog (logger h) $ T.pack $ "vveli v macros args: " ++ show args 
+      -- L.writeLog (logger h) $ T.pack $ "macroArgs: " ++ show macroArgs 
+      -- L.writeLog (logger h) $ T.pack $ "vveli v macros args: " ++ show args 
       let macroTable = Map.fromList $ zip macroArgs args
-      L.writeLog (logger h) $ T.pack $ "macroTable: " ++ show macroTable
+      -- L.writeLog (logger h) $ T.pack $ "macroTable: " ++ show macroTable
       let body' = mExpand macroTable body
       L.writeLog (logger h) $ T.pack $ "MACROEXPAND: " ++ show body'
       eval h env body'
