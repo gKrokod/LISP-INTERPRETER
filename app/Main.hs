@@ -47,8 +47,8 @@ main = do
   let handleLog =
         Handlers.Logger.Handle
           {   
-            -- Handlers.Logger.writeLog = \msg -> pure ()
-            Handlers.Logger.writeLog = \msg -> TIO.putStrLn $ "[LOG] " <> msg
+            Handlers.Logger.writeLog = \msg -> pure ()
+            -- Handlers.Logger.writeLog = \msg -> TIO.putStrLn $ "[LOG] " <> msg
           }
 
 -- construct Eval

@@ -73,7 +73,8 @@ instance Show SF where
   show LAMBDA = "lambda"
   show (LAMBDA' xs v e) = "\\" ++ intercalate " " xs ++ " -> " ++ show v -- \x y z -> (+ x y z)
   show MACRO = "macro"
-  show (MACRO' xs v ) = "@\\" ++ intercalate " " [(show xs)] ++ " -> " ++ show v -- @\x y z -> (+ x y z)
+  -- show (MACRO' xs v ) = "@\\" ++ intercalate " " [(show xs)] ++ " -> " ++ show v -- @\x y z -> (+ x y z)
+  show (MACRO' xs v ) = "macro " ++ show xs ++ " " ++ show v--"@\\" ++ intercalate " " [(show xs)] ++ " -> " ++ show v -- @\x y z -> (+ x y z)
   
 
 -- окружение есть ящик содержащий фрейm
