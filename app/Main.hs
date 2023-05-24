@@ -12,7 +12,7 @@
 module Main (main) where
 import Types (Environment, SExpr(..))
 -- import Parser
-
+import Data.Char
 import qualified Data.Map as Map
 -- import Data.Foldable 
 -- import qualified Handlers.Eval
@@ -27,6 +27,7 @@ import Text.Parsec (parse)
 import qualified Data.Text.IO as TIO 
 -- import Types (Binding)
 import Control.Exception (SomeException, try, evaluate, PatternMatchFail)
+type Tab = Int
 
 main :: IO ()
 main = do
@@ -73,24 +74,42 @@ fi h env x =
         -- print msg 
         resultEval <- Handlers.Eval.eval h env msg
         print resultEval 
+test = "(((macro (x y) ((macro (x) (+ x y)) 1)) 100 (+ 1 20)) ((macro (x y) ((lambda (x) (+ x y)) 2)) 100 (+ 10 2)) (def m (macro (name) ((lambda name (+ x y)) 2 3))) (def m1 (macro name ((lambda name (+ x y)) 2 3))) (def m2 (macro name ((lambda (name) (+ x y)) 2 3))) (def m3 (macro (name) ((lambda (name) (+ x y)) 2 3))) (+ 11 12))"
 
+
+prettyPrinter :: Tab -> String -> String
+prettyPrinter _ []  = []
+prettyPrinter tab (x : xs) = case x of
+  '(' -> let (w, e) = span (not . isSpace) xs in "\n" ++  replicate tab ' '++ "(" ++ w ++ prettyPrinter (succ tab) e
+  ')' -> ")" ++ "\n" ++ prettyPrinter (pred tab) xs
+  c -> let (w, e) = span (not . isSpace) (x : xs) in if isAlpha c
+         then w ++ prettyPrinter tab e
+         else [c] ++ prettyPrinter tab xs 
+-- prettyPrinter tab ('(': xs) = let (h, t) = break isAlphaNum xs
+--                               in  '(' : h ++ prettyPrinter (succ tab) t 
+-- prettyPrinter tab (')': xs) = ')' : '\n' : prettyPrinter (pred tab) xs 
+-- prettyPrinter tab (x : xs) = replicate tab ' ' ++ [x] ++ prettyPrinter tab xs
 
 loop :: Handlers.Eval.Handle IO -> Environment -> IO ()
 loop h env = do
   putStr ">>> "
   input <- clearComment <$> getLine
   if input == "file" then do
-    fileInput <- readFile "Library/Test.lisp"  
+    fileInput <- clearComment <$> readFile "Library/Test.lisp"  
     -- print fileInput
-    let fInput = filter (not . null) $ lines $ clearComment fileInput
-    mapM_ putStrLn fInput
-    mapM_ (fi h env) fInput
-    -- case parse parseInput "lisp" (fInput) of
-    --   Left e -> print e
-    --   Right msg -> do
-    --     -- print msg 
-    --     resultEval <- Handlers.Eval.eval h env msg
-    --     print resultEval 
+    -- let fInput = filter (not . null) $ lines $ clearComment fileInput
+    -- mapM_ putStrLn fInput
+    -- mapM_ (fi h env) fInput
+    case parse parseInput "lisp" (fileInput) of
+      Left e -> do
+        putStrLn "error"
+        print e
+      Right msg -> do
+        putStrLn "\n Parse file: \n"
+        print msg 
+        putStrLn "\n Eval: \n"
+        resultEval <- Handlers.Eval.eval h env msg
+        print resultEval 
   else  
     case parse parseInput "lisp" input of
       Left e -> print e

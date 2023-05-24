@@ -9,21 +9,27 @@ mExpand mEnv expr@(List [SForm LAMBDA, args, body]) = case Map.lookup expr mEnv 
   Nothing -> List [SForm LAMBDA, args', (mExpand mEnv' body)] 
     where mEnv' = Map.filterWithKey (\k _ -> k `notElem` dict ) mEnv 
           dict  = atomExprToMacroName args'
-          -- dict  = atomExprToName args'
--- atomExprToName :: SExpr -> [Name]
-          args' = case Map.lookup args mEnv of
+          args' = case Map.lookup args mEnv of -- если в аргументах макроса есть наши аргументы целиком, то заменяй
+                    -- (macro name (( lambda name (+ 1 x)) 1) ) x -> (lambda x (+ 1 x)) 1
                     Just a -> a
-                    Nothing -> args
+                    Nothing -> args -- во время eval аргументы эти уже переделаются в список []
 
 mExpand mEnv expr@(List [SForm MACRO, args, body]) = case Map.lookup expr mEnv of
   Just expr' -> expr'
   Nothing -> List [SForm MACRO, args', (mExpand mEnv' body)] 
     where mEnv' = Map.filterWithKey (\k _ -> k `notElem` dict ) mEnv 
           dict  = atomExprToMacroName args'
-          -- args' = mExpand mEnv args
-          args' = case Map.lookup args mEnv of
+          args' = case Map.lookup args mEnv of -- заменяем целиком аргумент если есть в макросе, иначе не лезем внутрь
                     Just a -> a
                     Nothing -> args
+
+mExpand mEnv expr@(List xs) = case Map.lookup expr mEnv of
+  Just expr' -> expr'
+  Nothing -> List $ map (mExpand mEnv) xs
+
+mExpand mEnv expr = case Map.lookup expr mEnv of
+  Nothing -> expr
+  Just expr' -> expr'
 -------------------------------------------------- формы до починки defn
 -- mExpand :: MacroEnvironment -> SExpr -> SExpr -- версия работает, с защитой затенения, но аргумент не подставить
 -- mExpand mEnv expr@(List [SForm LAMBDA, args, body]) = case Map.lookup expr mEnv of
@@ -60,13 +66,6 @@ mExpand mEnv expr@(List [SForm MACRO, args, body]) = case Map.lookup expr mEnv o
 --     where mEnv' = Map.filterWithKey (\k _ -> k `notElem` dict ) mEnv 
 --           dict  = atomExprToMacroName (Atom name)
 
-mExpand mEnv expr@(List xs) = case Map.lookup expr mEnv of
-  Just expr' -> expr'
-  Nothing -> List $ map (mExpand mEnv) xs
-
-mExpand mEnv expr = case Map.lookup expr mEnv of
-  Nothing -> expr
-  Just expr' -> expr'
 
 atomExprToMacroName :: SExpr -> [MacroName]
 atomExprToMacroName (List xs) = xs --concatMap atomExprToMacroName xs
