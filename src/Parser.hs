@@ -5,6 +5,26 @@ import Text.Parsec
 import Text.Parsec.String (Parser)
 import Control.Monad 
 
+-------------------------------------------------- Parser for Pretty Printer
+-- parseSkobki :: Parser [String]
+-- parseSkobki= do
+--   a <- char '('
+--   e <- many1 $ parsePrettyPrinter
+--   b <- char ')' 
+--   let sk = [a] ++ e ++ [b]
+--   return $ pure sk
+--
+-- parsePrettyPrinter :: Parser [String]
+-- parsePrettyPrinter = do
+--   whitespace
+--   choice [parseSkobki, parseWord]
+--
+-- parseWord :: Parser [String]
+-- parseWord= do
+--   -- whitespace
+--   rest <- many1 (letter <|> digit <|> symbol)
+--   return $ pure rest
+-------------------------------------------------- Parser for Pretty Printer
 
 parseInput :: Parser SExpr 
 parseInput = do

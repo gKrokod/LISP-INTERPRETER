@@ -22,7 +22,8 @@ import qualified Handlers.Eval
 import qualified Eval.Eval
 import qualified Scope.Scope
 -- import Scope.Scope (Binding)
-import Parser (parseInput, clearComment)
+-- import Parser (parseInput, clearComment)
+import Parser
 import Text.Parsec (parse)
 import qualified Data.Text.IO as TIO 
 -- import Types (Binding)
@@ -75,16 +76,29 @@ fi h env x =
         resultEval <- Handlers.Eval.eval h env msg
         print resultEval 
 test = "(((macro (x y) ((macro (x) (+ x y)) 1)) 100 (+ 1 20)) ((macro (x y) ((lambda (x) (+ x y)) 2)) 100 (+ 10 2)) (def m (macro (name) ((lambda name (+ x y)) 2 3))) (def m1 (macro name ((lambda name (+ x y)) 2 3))) (def m2 (macro name ((lambda (name) (+ x y)) 2 3))) (def m3 (macro (name) ((lambda (name) (+ x y)) 2 3))) (+ 11 12))"
+t = "(macro name (+ x name))"
+
+-- pP xs = case parse parsePrettyPrinter "printer" xs of
+--   Left e -> print e
+--   Right msg -> print msg 
 
 
-prettyPrinter :: Tab -> String -> String
-prettyPrinter _ []  = []
-prettyPrinter tab (x : xs) = case x of
-  '(' -> let (w, e) = span (not . isSpace) xs in "\n" ++  replicate tab ' '++ "(" ++ w ++ prettyPrinter (succ tab) e
-  ')' -> ")" ++ "\n" ++ prettyPrinter (pred tab) xs
-  c -> let (w, e) = span (not . isSpace) (x : xs) in if isAlpha c
-         then w ++ prettyPrinter tab e
-         else [c] ++ prettyPrinter tab xs 
+prettyPrinter :: Tab -> Tab -> String -> String
+prettyPrinter _ _ []  = []
+prettyPrinter tab 3 xs = let (w, e) = span (not . isSpace) xs in "\n" ++ replicate tab ' ' ++  w ++ prettyPrinter (succ tab) 0 e
+prettyPrinter tab sk (x : xs) | x == '(' =  "(" ++ prettyPrinter tab (succ sk) xs
+                              | x == ')' =  ")" ++ prettyPrinter tab (sk) xs
+                              | otherwise = [x] ++ prettyPrinter tab sk xs
+-- prettyPrinter tab (x : xs) | x == '(' && not (null xs) && head xs /= '$' = "\n(" ++  prettyPrinter (succ tab) xs
+--                            | x == '(' = "\n" ++  replicate tab ' '++ "(" ++ prettyPrinter (succ tab) xs
+--                            | x == ')' = ")" ++ prettyPrinter (pred tab) xs
+--                            | otherwise  = [x] ++ prettyPrinter tab xs
+--  case x of
+--   '(' -> let (w, e) = span (not . isSpace) xs in "\n" ++  replicate tab '_'++ "(" ++ w ++ prettyPrinter (succ tab) e
+--   -- ')' -> ")" ++ (if null xs || head xs == ')' then "" else "\n") ++ prettyPrinter (pred tab) xs
+--   c -> let (w, e) = span (not . isSpace) (x : xs) in if isAlphaNum c
+--          then if last w == ')' then  w ++ prettyPrinter (pred tab) e else w ++ prettyPrinter tab e
+--          else [c] ++ prettyPrinter tab xs 
 -- prettyPrinter tab ('(': xs) = let (h, t) = break isAlphaNum xs
 --                               in  '(' : h ++ prettyPrinter (succ tab) t 
 -- prettyPrinter tab (')': xs) = ')' : '\n' : prettyPrinter (pred tab) xs 
