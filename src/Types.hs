@@ -47,7 +47,7 @@ instance Show BP where
 
 instance Show SExpr where
   show (Atom str) = str --"atom " ++ str
-  -- show (List []) = "()"
+  show (List []) = "NIL"
   show (List xs) = "(" ++ intercalate " " (map show xs) ++ ")"
   show (Number int) = show int
   show (String str) = "\"" ++ str ++ "\""
@@ -58,22 +58,22 @@ instance Show SExpr where
   show (BPrim bp) = show bp
 
 instance Show SF where
-  show DEF = "def"
-  show GET = "get"
-  show SET = "set"
-  show TYPEOF = "type-of"
-  show CONS = "cons"
-  show CAR = "car"
-  show CDR = "cdr"
-  show COND = "cond"
+  show DEF = "DEF"
+  show GET = "GET"
+  show SET = "SET"
+  show TYPEOF = "TYPE-OF"
+  show CONS = "CONS"
+  show CAR = "CAR"
+  show CDR = "CDR"
+  show COND = "COND"
   -- show IF = "if"
-  show READ = "read"
-  show PRINT = "print"
-  show EVAL = "eval"
-  show EVALIN = "eval-in"
-  show LAMBDA = "lambda"
+  show READ = "READ"
+  show PRINT = "PRINT"
+  show EVAL = "EVAL"
+  show EVALIN = "EVAL-IN"
+  show LAMBDA = "LAMBDA"
   show (LAMBDA' xs v e) = "\\" ++ intercalate " " xs ++ " -> " ++ show v -- \x y z -> (+ x y z)
-  show MACRO = "macro"
+  show MACRO = "MACRO"
   show (MACRO' xs v ) = "@\\" ++ intercalate " " [(show xs)] ++ " -> " ++ show v -- @\x y z -> (+ x y z)
   -- show (MACRO' xs v ) = "macro " ++ show xs ++ " " ++ show v--"@\\" ++ intercalate " " [(show xs)] ++ " -> " ++ show v -- @\x y z -> (+ x y z)
   
