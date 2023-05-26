@@ -82,14 +82,14 @@ parseAtom = do
     "#t" -> Bool True 
     "#f" -> Bool False
     "def" -> SForm DEF
-    "set!" -> SForm SET
+    "set" -> SForm SET
     "get" -> SForm GET
     "typeof" -> SForm TYPEOF
     "cons" -> SForm CONS
     "car" -> SForm CAR
     "cdr" -> SForm CDR
     "cond" -> SForm COND
-    "if" -> SForm IF
+    -- "if" -> SForm IF -- через макросы сделал в стандартной либе
     "read" -> SForm READ
     "print" -> SForm PRINT
     "eval" -> SForm EVAL
@@ -97,7 +97,7 @@ parseAtom = do
     "lambda" -> SForm LAMBDA
     -- "lam" -> SForm LAMBDA
     "macro" -> SForm MACRO
-    "@" -> SForm MACRO
+    -- "@" -> SForm MACRO
     "+" -> BOper ADD
     "-" -> BOper SUB
     "*" -> BOper MUL

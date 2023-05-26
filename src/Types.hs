@@ -15,7 +15,7 @@ data SExpr = Atom String  -- +
 data SF    = DEF | SET | GET  -- + + +
            | QUOTE | TYPEOF -- + +
            | CONS | CAR | CDR | COND -- + + + +
-           | IF --
+           -- | IF --
            | PRINT | READ -- + +
            | EVAL  | LAMBDA -- + - +
            | LAMBDA' [Name] Value Environment -- lambda args body -> lambda' args body env -- +
@@ -60,13 +60,13 @@ instance Show SExpr where
 instance Show SF where
   show DEF = "def"
   show GET = "get"
-  show SET = "set!"
+  show SET = "set"
   show TYPEOF = "type-of"
   show CONS = "cons"
   show CAR = "car"
   show CDR = "cdr"
   show COND = "cond"
-  show IF = "if"
+  -- show IF = "if"
   show READ = "read"
   show PRINT = "print"
   show EVAL = "eval"

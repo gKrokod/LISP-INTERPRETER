@@ -88,10 +88,19 @@ eval h env (List (SForm COND : cond1 : other)) = do
       else eval h env (List (SForm COND : other))
     -- _ -> undefined
 --------------------------------------------------SET
-eval h env (List [SForm SET, Atom name, value]) = do
+eval h env (List [SForm SET, name, value]) = do
+-- eval h env (List [SForm SET, Atom name, value]) = do
   L.writeLog (logger h) $ T.pack ("eval set " ++ show name ++ " " ++ show value)
-  value' <- eval h env value -- vopros nado li vuchislat disskusionnuj
-  S.update (scope h) env name value'
+  value' <- eval h env value -- 
+  name'  <- eval h env name 
+  case name' of
+    Atom name'' -> do
+      -- L.writeLog (logger h) $ T.pack ("set atom name'")
+      S.update (scope h) env name'' value'
+    _ -> error "not atom"
+-- set вычисляет оба аргумента, setq не вычисляет первый аргумент, csetq создает константу
+-- возможно константу надо сохранять в отдельной области памяти. 
+  -- S.update (scope h) env name' value'
 -- --------------------------------------------------EVAL IN -- WARNING. возможно работает неправильно
 eval h env (List (SForm EVALIN : lambdaKey : args)) = do
   L.writeLog (logger h) $ T.pack ("eval in II variant")
