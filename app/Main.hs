@@ -49,8 +49,8 @@ main = do
   let handleLog =
         Handlers.Logger.Handle
           {   
-            Handlers.Logger.writeLog = \msg -> pure ()
-            -- Handlers.Logger.writeLog = \msg -> TIO.putStrLn $ "[LOG] " <> msg
+            -- Handlers.Logger.writeLog = \msg -> pure ()
+            Handlers.Logger.writeLog = \msg -> TIO.putStrLn $ "[LOG] " <> msg
           }
 
 -- construct Eval
@@ -67,80 +67,65 @@ main = do
   loop handleEval globalScope
   -- loop handle secondScope
 
-fi :: Handlers.Eval.Handle IO -> Environment -> String -> IO ()
-fi h env x = 
-    case parse parseInput "lisp" (x) of
-      Left e -> print e
-      Right msg -> do
-        -- print msg 
-        resultEval <- Handlers.Eval.eval h env msg
-        print resultEval 
-test = "(((macro (x y) ((macro (x) (+ x y)) 1)) 100 (+ 1 20)) ((macro (x y) ((lambda (x) (+ x y)) 2)) 100 (+ 10 2)) (def m (macro (name) ((lambda name (+ x y)) 2 3))) (def m1 (macro name ((lambda name (+ x y)) 2 3))) (def m2 (macro name ((lambda (name) (+ x y)) 2 3))) (def m3 (macro (name) ((lambda (name) (+ x y)) 2 3))) (+ 11 12))"
-t = "(macro name (+ x name))"
-
--- pP xs = case parse parsePrettyPrinter "printer" xs of
---   Left e -> print e
---   Right msg -> print msg 
-
-
-prettyPrinter :: Tab -> Tab -> String -> String
-prettyPrinter _ _ []  = []
-prettyPrinter tab 3 xs = let (w, e) = span (not . isSpace) xs in "\n" ++ replicate tab ' ' ++  w ++ prettyPrinter (succ tab) 0 e
-prettyPrinter tab sk (x : xs) | x == '(' =  "(" ++ prettyPrinter tab (succ sk) xs
-                              | x == ')' =  ")" ++ prettyPrinter tab (sk) xs
-                              | otherwise = [x] ++ prettyPrinter tab sk xs
--- prettyPrinter tab (x : xs) | x == '(' && not (null xs) && head xs /= '$' = "\n(" ++  prettyPrinter (succ tab) xs
---                            | x == '(' = "\n" ++  replicate tab ' '++ "(" ++ prettyPrinter (succ tab) xs
---                            | x == ')' = ")" ++ prettyPrinter (pred tab) xs
---                            | otherwise  = [x] ++ prettyPrinter tab xs
---  case x of
---   '(' -> let (w, e) = span (not . isSpace) xs in "\n" ++  replicate tab '_'++ "(" ++ w ++ prettyPrinter (succ tab) e
---   -- ')' -> ")" ++ (if null xs || head xs == ')' then "" else "\n") ++ prettyPrinter (pred tab) xs
---   c -> let (w, e) = span (not . isSpace) (x : xs) in if isAlphaNum c
---          then if last w == ')' then  w ++ prettyPrinter (pred tab) e else w ++ prettyPrinter tab e
---          else [c] ++ prettyPrinter tab xs 
--- prettyPrinter tab ('(': xs) = let (h, t) = break isAlphaNum xs
---                               in  '(' : h ++ prettyPrinter (succ tab) t 
--- prettyPrinter tab (')': xs) = ')' : '\n' : prettyPrinter (pred tab) xs 
--- prettyPrinter tab (x : xs) = replicate tab ' ' ++ [x] ++ prettyPrinter tab xs
+-- fi :: Handlers.Eval.Handle IO -> Environment -> String -> IO ()
+-- fi h env x = 
+--     case parse parseInput "lisp" (x) of
+--       Left e -> print e
+--       Right msg -> do
+--         -- print msg 
+--         resultEval <- Handlers.Eval.eval h env msg
+--         print resultEval 
 
 loop :: Handlers.Eval.Handle IO -> Environment -> IO ()
 loop h env = do
   putStr ">>> "
   input <- clearComment <$> getLine
-  if input == "file" then do
-    fileInput <- clearComment <$> readFile "Library/Test.lisp"  
-    -- print fileInput
-    -- let fInput = filter (not . null) $ lines $ clearComment fileInput
-    -- mapM_ putStrLn fInput
-    -- mapM_ (fi h env) fInput
-    case parse parseInput "lisp" (fileInput) of
-      Left e -> do
-        putStrLn "error"
-        print e
-      Right msg -> do
-        putStrLn "\n Parse file: \n"
-        print msg 
-        putStrLn "\n Eval: \n"
-        resultEval <- Handlers.Eval.eval h env msg
-        print resultEval 
-  else  
-    case parse parseInput "lisp" input of
-      Left e -> print e
-      Right msg -> do
-        -- print msg 
-       -- пишут, что надо обязательно evaluate писать, мол без него легко не словить ошибку, ну не знаю пока
-        -- resultEval <- try @PatternMatchFail $ evaluate (Handlers.Eval.eval h env msg)
-        resultEval <- try @PatternMatchFail (Handlers.Eval.eval h env msg)
-        case resultEval of
-          Left e -> do
-            print e--(e :: PatternMatchFail)
-            putStrLn "exception pattern \n"
-            loop h env
-          Right r1 -> do 
-            putStrLn "exception right"
-            print r1
-      -- pure ()
+  case input of 
+    "test" -> do
+      fileInput <- clearComment <$> readFile "Library/Test.lisp" 
+      -- print fileInput
+      -- let fInput = filter (not . null) $ lines $ clearComment fileInput
+      -- mapM_ putStrLn fInput
+      -- mapM_ (fi h env) fInput
+      case parse parseInput "lisp" (fileInput) of
+        Left e -> do
+          putStrLn "error"
+          print e
+        Right msg -> do
+          putStrLn "\n Parse Test file: \n"
+          print msg 
+          putStrLn "\n Eval: \n"
+          resultEval <- Handlers.Eval.eval h env msg
+          print resultEval 
+    "base" -> do
+      fileInput <- clearComment <$> readFile "Library/Library.lisp" 
+      case parse parseInput "lisp" (fileInput) of
+        Left e -> do
+          putStrLn "error Library file"
+          print e
+        Right msg -> do
+          putStrLn "\n Parse Library file: \n"
+          print msg 
+          putStrLn "\n Eval: \n"
+          resultEval <- Handlers.Eval.eval h env msg
+          print resultEval 
+    otherwise -> do  
+        case parse parseInput "lisp" input of
+          Left e -> print e
+          Right msg -> do
+            -- print msg 
+           -- пишут, что надо обязательно evaluate писать, мол без него легко не словить ошибку, ну не знаю пока
+            -- resultEval <- try @PatternMatchFail $ evaluate (Handlers.Eval.eval h env msg)
+            resultEval <- try @PatternMatchFail (Handlers.Eval.eval h env msg)
+            case resultEval of
+              Left e -> do
+                print e--(e :: PatternMatchFail)
+                putStrLn "exception pattern \n"
+                loop h env
+              Right r1 -> do 
+                putStrLn "exception right"
+                print r1
+        -- pure ()
   loop h env
 
 --

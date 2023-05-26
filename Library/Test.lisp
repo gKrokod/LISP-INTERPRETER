@@ -2,8 +2,10 @@
 ; этот макрос работает = macroexpand (('( a b (c d))));
 (
 ((macro (x y) ( (macro (x) (+ x y)) 1 ) ) 100 (+ 1 20))
+;22;
 
 ((macro (x y) ( (lambda (x) (+ x y)) 2 ) ) 100 (+ 10 2))
+;14;
 
 ; (macro name ( (lambda name (+ x y)) 2 3) ) (x y);
 

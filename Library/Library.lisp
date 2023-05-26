@@ -1,15 +1,25 @@
-; проверка затенения макроса;
-;
-(@ x ((@ x 'x) + 3 x)) 10
+(
+(def defmacro (macro (name args body) (def name (macro args body))))
+;@\[name,args,body] -> (def name (macro args body));
 
-(@ (x y) (+ ((@ (x y) (+ x y)) 10 20) 5)) 1 2 ; должно быть 35;
-(@ (x y) (+ x y ((@ (x y) (+ x y)) 10 20) 5)) 1 2 ; должно быть 38 (+ 1 2 (+ 10 20) 5);
+(def defn (macro (name args body) (def name (lambda args body))))
+; @\[name,args,body] -> (def name (lambda args body));
 
-(@ x ((@ x (x)) 1 3 x)) 10
+(defmacro defnn (name args body) (def name (lambda args body)))
+; @\[name,args,body] -> (def name (lambda args body));
 
-((@ x 'x) +) 4 5 ; результат 9
-;
+; (defmacro defnn_ (name_ args_ body_) (def name_ (lambda args_ body_))) для отладки было;
+; @\[name_,args_,body_] -> (def name_ (lambda args_ body_));
 
 
+; (def nil '());
 
+; (defn aa (x) (+ x x));
 
+; (defn2 aa2 (x) (+ 1 x));
+
+(defn caar args (car (cdr args)))
+
+(defmacro caarm args (car (cdr args)))
+
+)

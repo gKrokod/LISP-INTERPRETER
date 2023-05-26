@@ -109,18 +109,18 @@ eval h env (List (func : args)) = do
     List _ -> do
       func' <- eval h env func
       if func' == func then do
-        L.writeLog (logger h) "LIst : func' == func " 
+        -- L.writeLog (logger h) "LIst : func' == func " 
         apply h env func (mapM (eval h env) args)
       else do 
-        L.writeLog (logger h) "LIst : func' /= func " 
+        -- L.writeLog (logger h) "LIst : func' /= func " 
         eval h env (List (func' : args))
     Atom _ -> do
       func' <- eval h env func
       if func' == func then do
-        L.writeLog (logger h) "Atom: func' == func " 
+        -- L.writeLog (logger h) "Atom: func' == func " 
         apply h env func (mapM (eval h env) args)
       else do 
-        L.writeLog (logger h) "Atom: func' /= func " 
+        -- L.writeLog (logger h) "Atom: func' /= func " 
         eval h env (List (func' : args))
     (SForm (MACRO' macroArgs body)) -> do
       L.writeLog (logger h) "eval MACRO'"
