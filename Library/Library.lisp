@@ -16,6 +16,7 @@
 
 ;------------------------------------------------- extension core;
 (def nil '())
+(defmacro null args (== () args))
 (defmacro not arg (cond (arg #f) ((== (typeof arg) "Bool") #t) (#t (print "Exception not bool argument"))))) 
 (defmacro if (predicate thenDo elseDo) (cond (predicate thenDo) ((== (typeof arg) "Bool") elseDo) (#t (print "Exception not bool argument") ))) ; eq $ bool p then else;
 (defmacro setq (atom value) (set 'atom value))
@@ -30,9 +31,15 @@
 (defmacro caddr args (car (cdr (cdr args))))
 (defmacro cadddr args (car (cdr (cdr (cdr args)))))
 ;----------------------------------------;
+; base function;
+(def length (lambda args (cond ((null args) 0) (#t (+ 1 (length (cdr args)))))))
+(def sum-list (lambda args (cond ((null args) 0) (#t (+ (car args) (sum-list (cdr args)))))))
+
+;(defmacro len args (lambda args (cond ((null args) 0) (#t (+ 1 (len (cdr args))))))) ne robit;
 
 )
 ; ---------------------------------------- описание функций;
+; null list - empty list? ;
 ; set a b - присвоить атому а, значение б. Вычисляет оба аргумента - core;
 ; setq a b - вычисляет только аргумент b;
 ; cond (condition1 result1) (condition2 result2) .. (conditionN resultN) - core;
@@ -41,5 +48,8 @@
 ; car xs = head xs;
 ; cdr xs = tail xs;
 ; cons a b = (eval a) : (eval b);
+; lenght xs = ex: lenght '(1 2 30) = 3;
+; sum-list xs = ex: sum-list '(1 2 30) = 33;
+
 
 

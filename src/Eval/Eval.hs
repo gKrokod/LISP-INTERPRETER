@@ -13,6 +13,7 @@ import Text.Parsec (parse)
 atomExprToName :: SExpr -> [Name]
 atomExprToName (Atom str) = [str]
 atomExprToName (List xs) = concatMap atomExprToName xs
+atomExprToName x = error $ "vot tyt " ++  show x
 
 hPrint :: SExpr -> IO ()
 hPrint = print 
@@ -40,30 +41,3 @@ bprim p _ _ = error "bprim on undefined arguments"
 boper :: (forall a. Num a => a -> a -> a) -> SExpr -> SExpr -> SExpr
 boper func (Number a) (Number b) = Number $ func a b
 boper _ _ _  = error "boper in undefined arguments"
-
--- boper ::
---
--- unBoxNumber :: SExpr -> Int 
--- unBoxNumber (Number x) = x
--- unBoxNumber _ = error "not Number"
---
--- unBoxString :: SExpr -> String 
--- unBoxString (String x) = x
--- unBoxBool :: SExpr -> Bool 
--- unBoxBool (Bool x) = x
--- unBoxAtom :: SExpr -> String 
--- unBoxAtom (Atom x) = x
--- -- unBoxList :: SExpr -> SExpr
--- -- unBoxList (List xs) = xs
--- --
---
--- apply :: (Monad m) => Handle m -> Environment -> SFunc -> m ([SExpr]) -> m SExpr
--- apply h env (BOper f) xs = do
---   L.writeLog (logger h) "apply BOper func. If empty list = error" 
---   xs' <- xs
---   let unboxXs = map unBoxNumber xs'
---   case f of
---     ADD -> pure $ Number $ foldl1' (+) unboxXs
---     SUB -> pure $ Number $ foldl1' (-) unboxXs
---     MUL -> pure $ Number $ foldl1' (*) unboxXs
--- -- Add Gt, LT, EQ for another Types

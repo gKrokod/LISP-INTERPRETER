@@ -23,7 +23,7 @@ data Handle m = Handle {
 --elementary SExpr
 -- todo сделать вычисления BP and BO форм в самих себя, т.е. (+) вычислялся, чтобы в +
 -- или падать?
-eval :: (Monad m) => Handle m -> Environment -> SExpr -> m (SExpr)
+eval :: (MonadFail m, Monad m) => Handle m -> Environment -> SExpr -> m (SExpr)
 eval h env expr@(Number _) = do
   L.writeLog (logger h) "eval Number" 
   pure expr
@@ -143,7 +143,7 @@ eval h env (List (func : args)) = do
     otherwise -> apply h env func (mapM (eval h env) args)
 
 
-apply :: (Monad m) => Handle m -> Environment -> SFunc -> m ([SExpr]) -> m SExpr
+apply :: (MonadFail m, Monad m) => Handle m -> Environment -> SFunc -> m ([SExpr]) -> m SExpr
 apply h env (BOper f) xs = do
   L.writeLog (logger h) "apply BOper func. If empty list = error" 
   xs' <- xs
@@ -151,12 +151,10 @@ apply h env (BOper f) xs = do
     ADD -> pure $ foldl1' (boper (+)) xs'
     SUB -> pure $ foldl1' (boper (-)) xs'
     MUL -> pure $ foldl1' (boper (*)) xs' 
-
 --
 apply h env (BPrim p) xs = do 
   L.writeLog (logger h) "apply BPrim func.  If empty list = error" 
-  xs' <- xs
-  let (x, y) = (head xs', last xs')
+  (x : y : _) <- xs -- possible error pattern matching
   case p of
     GT' -> pure $ Bool $ bprim (>) x y
     LT' -> pure $ Bool $ bprim (<) x y
@@ -164,7 +162,7 @@ apply h env (BPrim p) xs = do
 
 apply h env (SForm TYPEOF) xs = do 
   L.writeLog (logger h) "apply type-of func. If empty list = error " 
-  x <- head <$> xs
+  (x : _)  <- xs
   case x of
     Atom _ -> pure $ String "Atom"
     List _ -> pure $ String "List"
@@ -177,14 +175,14 @@ apply h env (SForm TYPEOF) xs = do
 
 apply h env (SForm CAR) xs = do 
   L.writeLog (logger h) "apply car func. If empty list = error " 
-  x <- head <$> xs
+  (x : _)  <- xs -- possible error pattern matching
   case x of
     List ( result : _) -> pure result
     -- _ -> undefined
   
 apply h env (SForm CDR) xs = do 
   L.writeLog (logger h) "apply cdr func. If empty list = error " 
-  x <- head <$> xs
+  (x : _)  <- xs -- possible error pattern matching
   case x of
     List ( _ : result) -> pure $ List result
     -- _ -> undefined
