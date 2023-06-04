@@ -5,10 +5,8 @@
 -- работу с числами с плаввающей запятой
 -- работу со строками
 -- больше или равно, меньше или равно
+-- add list into core in SF type
 -- 
---  Сделать многострочный ввод
---  Сделать pretty printer
---  перенести в файл macro чистые функции
 module Main (main) where
 import Types (Environment, SExpr(..))
 -- import Parser

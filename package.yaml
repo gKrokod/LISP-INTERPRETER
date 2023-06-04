@@ -17,6 +17,9 @@ default-extensions:
 - OverloadedStrings
 - TypeSynonymInstances
 - FlexibleInstances
+# - QuantifiedConstraints
+# RankNType for fucntion bprim
+# - RankNTypes
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
 # category:            Web

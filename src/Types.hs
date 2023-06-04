@@ -15,7 +15,7 @@ data SExpr = Atom String  -- +
 data SF    = DEF | SET | GET  -- + + +
            | QUOTE | TYPEOF -- + +
            | CONS | CAR | CDR | COND -- + + + +
-           -- | IF --
+           -- | IF -- made in base library
            | PRINT | READ -- + +
            | EVAL  | LAMBDA -- + - +
            | LAMBDA' [Name] Value Environment -- lambda args body -> lambda' args body env -- +

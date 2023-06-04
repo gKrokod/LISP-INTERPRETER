@@ -8,7 +8,7 @@ import Data.List (foldl1')
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import Eval.Macros (mExpand, atomExprToMacroName)
-import Eval.Eval (atomExprToName)
+import Eval.Eval (atomExprToName, bprim, boper)
 import Data.Function
 import Control.Exception (SomeException, try, evaluate)
 
@@ -142,49 +142,26 @@ eval h env (List (func : args)) = do
       eval h env body'
     otherwise -> apply h env func (mapM (eval h env) args)
 
-unBoxNumber :: SExpr -> Int 
-unBoxNumber (Number x) = x
-unBoxNumber _ = error "not Number"
-
-unBoxString :: SExpr -> String 
-unBoxString (String x) = x
-unBoxBool :: SExpr -> Bool 
-unBoxBool (Bool x) = x
-unBoxAtom :: SExpr -> String 
-unBoxAtom (Atom x) = x
--- unBoxList :: SExpr -> SExpr
--- unBoxList (List xs) = xs
-
 
 apply :: (Monad m) => Handle m -> Environment -> SFunc -> m ([SExpr]) -> m SExpr
 apply h env (BOper f) xs = do
   L.writeLog (logger h) "apply BOper func. If empty list = error" 
   xs' <- xs
-  let unboxXs = map unBoxNumber xs'
   case f of
-    ADD -> pure $ Number $ foldl1' (+) unboxXs
-    SUB -> pure $ Number $ foldl1' (-) unboxXs
-    MUL -> pure $ Number $ foldl1' (*) unboxXs
--- Add Gt, LT, EQ for another Types
+    ADD -> pure $ foldl1' (boper (+)) xs'
+    SUB -> pure $ foldl1' (boper (-)) xs'
+    MUL -> pure $ foldl1' (boper (*)) xs' 
+
+--
 apply h env (BPrim p) xs = do 
   L.writeLog (logger h) "apply BPrim func.  If empty list = error" 
   xs' <- xs
   let (x, y) = (head xs', last xs')
-  case (x, y, p) of
-    (Number _, _, GT') -> pure $ Bool $ ((>) `on` unBoxNumber) x y
-    (String _, _,GT') -> pure $ Bool $ ((>) `on` unBoxString) x y
-    (Bool _, _, GT')   -> pure $ Bool $ ((>) `on` unBoxBool) x y
-    (Number _, _, LT') -> pure $ Bool $ ((<) `on` unBoxNumber) x y
-    (String _, _, LT') -> pure $ Bool $ ((<) `on` unBoxString) x y
-    (Bool _, _, LT') -> pure $ Bool $ ((<) `on` unBoxBool) x y
-    (Number _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxNumber) x y
-    (String _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxString) x y
-    (Bool _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxBool) x y
-    (Atom _, _, EQ') -> pure $ Bool $ ((==) `on` unBoxAtom) x y
-    (List [], List [], EQ') -> pure $ Bool True 
-    (List as, List bs, EQ') -> pure $ Bool False 
-    -- (List as, List bs, EQ') -> pure $ Bool False 
-   
+  case p of
+    GT' -> pure $ Bool $ bprim (>) x y
+    LT' -> pure $ Bool $ bprim (<) x y
+    EQ' -> pure $ Bool $ bprim (==) x y
+
 apply h env (SForm TYPEOF) xs = do 
   L.writeLog (logger h) "apply type-of func. If empty list = error " 
   x <- head <$> xs

@@ -29,7 +29,7 @@
 (defmacro cadar args (car (cdr (car args))))
 (defmacro caddr args (car (cdr (cdr args))))
 (defmacro cadddr args (car (cdr (cdr (cdr args)))))
-;----------------------------------------
+;----------------------------------------;
 
 )
 ; ---------------------------------------- описание функций;
