@@ -1,0 +1,82 @@
+
+
+VIM - Vi IMproved 8.1 (2018 May 18, compiled Apr 18 2023 10:20:44)
+Included patches: 1-2269, 3612, 3625, 3669, 3741
+Modified by team+vim@tracker.debian.org
+Compiled by team+vim@tracker.debian.org
+Huge version without GUI.  Features included (+) or not (-):
++acl               +cursorbind        +insert_expand     +mouse_sgr         -ruby              +title
++arabic            +cursorshape       +job               -mouse_sysmouse    +scrollbind        -toolbar
++autocmd           +dialog_con        +jumplist          +mouse_urxvt       +signs             +user_commands
++autochdir         +diff              +keymap            +mouse_xterm       +smartindent       +vartabs
+-autoservername    +digraphs          +lambda            +multi_byte        +sound             +vertsplit
+-balloon_eval      -dnd               +langmap           +multi_lang        +spell             +virtualedit
++balloon_eval_term -ebcdic            +libcall           -mzscheme          +startuptime       +visual
+-browse            +emacs_tags        +linebreak         +netbeans_intg     +statusline        +visualextra
+++builtin_terms    +eval              +lispindent        +num64             -sun_workshop      +viminfo
++byte_offset       +ex_extra          +listcmds          +packages          +syntax            +vreplace
++channel           +extra_search      +localmap          +path_extra        +tag_binary        +wildignore
++cindent           -farsi             -lua               -perl              -tag_old_static    +wildmenu
+-clientserver      +file_in_path      +menu              +persistent_undo   -tag_any_white     +windows
+-clipboard         +find_in_path      +mksession         +postscript        -tcl               +writebackup
++cmdline_compl     +float             +modify_fname      +printer           +termguicolors     -X11
++cmdline_hist      +folding           +mouse             +profile           +terminal          -xfontset
++cmdline_info      -footer            -mouseshape        -python            +terminfo          -xim
++comments          +fork()            +mouse_dec         +python3           +termresponse      -xpm
++conceal           +gettext           +mouse_gpm         +quickfix          +textobjects       -xsmp
++cryptv            -hangul_input      -mouse_jsbterm     +reltime           +textprop          -xterm_clipboard
++cscope            +iconv             +mouse_netterm     +rightleft         +timers            -xterm_save
+   system vimrc file: "$VIM/vimrc"
+     user vimrc file: "$HOME/.vimrc"
+ 2nd user vimrc file: "~/.vim/vimrc"
+      user exrc file: "$HOME/.exrc"
+       defaults file: "$VIMRUNTIME/defaults.vim"
+  fall-back for $VIM: "/usr/share/vim"
+Compilation: gcc -c -I. -Iproto -DHAVE_CONFIG_H   -Wdate-time  -g -O2 -fdebug-prefix-map=/build/vim-JJcc3W/vim-8.1.2269=. -fstack-protector-strong -Wformat -Werror=format-security -D_REENTRANT -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=1       
+Linking: gcc   -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--as-needed -o vim        -lm -ltinfo -lnsl  -lselinux  -lcanberra -lacl -lattr -lgpm -ldl     -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 -lcrypt -lpthread -ldl -lutil -lm -lm      2023-06-02 18:26:18.948514: ToggleWindow called
+2023-06-02 18:26:18.948637: CloseWindow called
+2023-06-02 18:26:18.948760: goto_win(): 2wincmd w, 0
+2023-06-02 18:26:18.949246: AutoUpdate called [/home/w/projects/git/lisp/__Tagbar__.1]
+2023-06-02 18:26:18.949341: In Tagbar window, stopping processing
+2023-06-02 18:26:18.950181: AutoUpdate called [/home/w/projects/git/lisp/app/Main.hs]
+2023-06-02 18:26:18.950267: Vim filetype: 'haskell', sanitized filetype: 'haskell'
+2023-06-02 18:26:18.950317: Checking if file is valid [/home/w/projects/git/lisp/app/Main.hs]
+2023-06-02 18:26:18.950433: Unsupported filetype: haskell
+2023-06-02 18:26:18.950482: Not a valid file, stopping processing
+2023-06-02 18:26:18.950618: goto_win(): 1wincmd w, 0
+2023-06-02 18:26:18.951642: CloseWindow finished
+2023-06-02 18:26:24.567978: ToggleWindow called
+2023-06-02 18:26:24.568123: OpenWindow called with flags: ''
+2023-06-02 18:26:24.568306: Creating autocommands
+2023-06-02 18:26:24.568932: AutoUpdate called [/home/w/projects/git/lisp/app/Main.hs]
+2023-06-02 18:26:24.569019: Vim filetype: 'haskell', sanitized filetype: 'haskell'
+2023-06-02 18:26:24.569067: Checking if file is valid [/home/w/projects/git/lisp/app/Main.hs]
+2023-06-02 18:26:24.569160: Unsupported filetype: haskell
+2023-06-02 18:26:24.569205: Not a valid file, stopping processing
+2023-06-02 18:26:24.569751: AutoUpdate called [/home/w/projects/git/lisp/__Tagbar__.1]
+2023-06-02 18:26:24.569812: Still opening window, stopping processing
+2023-06-02 18:26:24.573226: Tagbar already initialized; not restoring session
+2023-06-02 18:26:24.573293: Tagbar already initialized; not restoring session
+2023-06-02 18:26:24.573364: InitWindow called with autoclose: 0
+2023-06-02 18:26:24.574598: AutoUpdate called [/home/w/projects/git/lisp/__Tagbar__.1]
+2023-06-02 18:26:24.574695: In Tagbar window, stopping processing
+2023-06-02 18:26:24.574927: InitWindow finished
+2023-06-02 18:26:24.575000: AutoUpdate called [/home/w/projects/git/lisp/app/Main.hs]
+2023-06-02 18:26:24.575074: Vim filetype: 'haskell', sanitized filetype: 'haskell'
+2023-06-02 18:26:24.575120: Checking if file is valid [/home/w/projects/git/lisp/app/Main.hs]
+2023-06-02 18:26:24.575214: Unsupported filetype: haskell
+2023-06-02 18:26:24.575257: Not a valid file, stopping processing
+2023-06-02 18:26:24.580757: AutoUpdate called [/home/w/projects/git/lisp/app/Main.hs]
+2023-06-02 18:26:24.580841: Vim filetype: 'haskell', sanitized filetype: 'haskell'
+2023-06-02 18:26:24.580890: Checking if file is valid [/home/w/projects/git/lisp/app/Main.hs]
+2023-06-02 18:26:24.580983: Unsupported filetype: haskell
+2023-06-02 18:26:24.581028: Not a valid file, stopping processing
+2023-06-02 18:26:24.581085: OpenWindow finished
+2023-06-02 18:26:24.581127: ToggleWindow finished
+2023-06-02 18:26:48.777885: AutoUpdate called [/home/w/projects/git/lisp/app/Main.hs]
+2023-06-02 18:26:48.778139: Vim filetype: 'haskell', sanitized filetype: 'haskell'
+2023-06-02 18:26:48.778260: Checking if file is valid [/home/w/projects/git/lisp/app/Main.hs]
+2023-06-02 18:26:48.778620: Unsupported filetype: haskell
+2023-06-02 18:26:48.778739: Not a valid file, stopping processing
+2023-06-02 18:27:26.949353: Closing Tagbar window due to QuitPre event
+2023-06-02 18:27:26.949469: goto_win(): 1wincmd w, 1

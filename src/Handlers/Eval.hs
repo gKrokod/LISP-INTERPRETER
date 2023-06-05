@@ -23,6 +23,7 @@ data Handle m = Handle {
 --elementary SExpr
 -- todo сделать вычисления BP and BO форм в самих себя, т.е. (+) вычислялся, чтобы в +
 -- или падать?
+-- MonadFail for pattern matching as (x : _ ) <- xs
 eval :: (MonadFail m, Monad m) => Handle m -> Environment -> SExpr -> m (SExpr)
 eval h env expr@(Number _) = do
   L.writeLog (logger h) "eval Number" 
@@ -193,9 +194,15 @@ apply h env (SForm READ) xs = do
   
 apply h env (SForm PRINT) xs = do 
   L.writeLog (logger h) "apply print func. If empty list = error " 
-  x <- head <$> xs
+  (x : _)  <- xs -- possible error pattern matching
+  -- x <- head <$> xs
   hPrint h x
   pure $ Bool True
+
+apply h env (SForm LIST) xs = do 
+  L.writeLog (logger h) "apply print list. If empty list = error " 
+  xs' <- xs
+  pure $ List xs'
 
 apply h env (SForm CONS) xs = do 
   L.writeLog (logger h) "apply cons func. error with no List arg " 
@@ -206,7 +213,8 @@ apply h env (SForm CONS) xs = do
     
 apply h env (SForm EVAL) xs = do 
   L.writeLog (logger h) "apply eval func. error with no List arg " 
-  x <- head <$> xs
+  (x : _)  <- xs -- possible error pattern matching
+  -- x <- head <$> xs
   eval h env x
 -------------------------------------------------- LABMDA' Две верси
 -- версия первая

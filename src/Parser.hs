@@ -90,6 +90,7 @@ parseAtom = do
     "cdr" -> SForm CDR
     "cond" -> SForm COND
     -- "if" -> SForm IF -- через макросы сделал в стандартной либе
+    "list" -> SForm LIST
     "read" -> SForm READ
     "print" -> SForm PRINT
     "eval" -> SForm EVAL

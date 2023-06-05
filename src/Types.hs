@@ -15,6 +15,7 @@ data SExpr = Atom String  -- +
 data SF    = DEF | SET | GET  -- + + +
            | QUOTE | TYPEOF -- + +
            | CONS | CAR | CDR | COND -- + + + +
+           | LIST
            -- | IF -- made in base library
            | PRINT | READ -- + +
            | EVAL  | LAMBDA -- + - +
@@ -66,6 +67,7 @@ instance Show SF where
   show CAR = "CAR"
   show CDR = "CDR"
   show COND = "COND"
+  show LIST = "LIST"
   -- show IF = "if"
   show READ = "READ"
   show PRINT = "PRINT"
