@@ -1,11 +1,10 @@
 -- todo
--- Eval + - * в самих себя. То есть (+) чтобы эвалился в +.? дискуссионно
+-- Eval + - * в самих себя. То есть (+) чтобы эвалился в +.? дискуссионно. samoopredelennue?
+-- vozvedenie v stepen. ^ or **.
 -- eval in, два аргумента, первй лямбда у которой берем окружение для вычисления второго аргумента в нем
 -- проверить eval in не могу придумать пример
 -- работу с числами с плаввающей запятой
 -- работу со строками
--- больше или равно, меньше или равно
--- add list into core in SF type
 -- 
 module Main (main) where
 import Types (Environment, SExpr(..))
@@ -47,8 +46,8 @@ main = do
   let handleLog =
         Handlers.Logger.Handle
           {   
-            Handlers.Logger.writeLog = \msg -> pure ()
-            -- Handlers.Logger.writeLog = \msg -> TIO.putStrLn $ "[LOG] " <> msg
+            -- Handlers.Logger.writeLog = \msg -> pure ()
+            Handlers.Logger.writeLog = \msg -> TIO.putStrLn $ "[LOG] " <> msg
           }
 
 -- construct Eval

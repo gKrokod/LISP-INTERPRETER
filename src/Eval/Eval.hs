@@ -38,6 +38,6 @@ bprim p (List (a : as)) (List (b : bs)) = case (bprim (==) a b) of
                                            True -> bprim p (List as) (List bs)   
 bprim p _ _ = error "bprim on undefined arguments"
 
-boper :: (forall a. Num a => a -> a -> a) -> SExpr -> SExpr -> SExpr
+boper :: (forall a. (Num a) => a -> a -> a) -> SExpr -> SExpr -> SExpr
 boper func (Number a) (Number b) = Number $ func a b
 boper _ _ _  = error "boper in undefined arguments"

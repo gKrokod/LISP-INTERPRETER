@@ -153,6 +153,7 @@ apply h env (BOper f) xs = do
     ADD -> pure $ foldl1' (boper (+)) xs'
     SUB -> pure $ foldl1' (boper (-)) xs'
     MUL -> pure $ foldl1' (boper (*)) xs' 
+    -- EXPT -> pure $ foldl1' (boper (**)) xs' 
 --
 apply h env (BPrim p) xs = do 
   L.writeLog (logger h) "apply BPrim func.  If empty list = error" 

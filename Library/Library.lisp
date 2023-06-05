@@ -15,7 +15,9 @@
 
 
 ;------------------------------------------------- extension core;
+; memory;
 (def nil '())
+
 (def void "{}") ; затычка не связанная с SExpre Void, но несущая тот же смысл ;
 (defmacro null args (== args nil))
 
@@ -34,7 +36,6 @@
 (defmacro setq (atom value) (set 'atom value))
 
 ;--Logic family;
-
 (defmacro and (x y) (if (isBool x)
                        (if (isBool y) 
                           (cond (x y) (#t #f) ) ((print "Exception not bool second argument") void) ) 
@@ -45,12 +46,26 @@
                        ((print "Exception not bool argument") void) ))
 (defmacro xor (x y) (and (or x y) (not (and x y))))
 
+(defmacro greaterp (x y) (cond ((== (typeof x) (typeof y)) (> x y))
+                               (#t ((print "Exception different types on arguments") void))))
+(defmacro greqp (x y) (cond ((== (typeof x) (typeof y)) (>= x y))
+                            (#t ((print "Exception different types on arguments") void))))
+(defmacro lessp (x y) (cond ((== (typeof x) (typeof y)) (< x y))
+                            (#t ((print "Exception different types on arguments") void))))
+(defmacro leeqp (x y) (cond ((== (typeof x) (typeof y)) (<= x y))
+                            (#t ((print "Exception different types on arguments") void))))
+(defmacro eq (x y) (cond ((== (typeof x) (typeof y))  (== x y))
+                         (#t ((print "Exception different types on arguments") void))))
+(defmacro neq (x y) (cond ((== (typeof x) (typeof y)) (not (== x y)))
+                          (#t ((print "Exception different types on arguments") void))))
+
+
 ;--Logic Arithmetic;
 (defun abs x (if (> x 0) x (* (-1) x))) 
 (defun max (x y) (if (> x y) x y)) 
 (defun min (x y) (if (< x y) x y)) 
 
-;(defun id (x) (x)) ;
+(defun id x x)
 ;(defmacro idd (x) ('(x))) ;
 (defun fib x 
   (cond ((== 0 x) 0)

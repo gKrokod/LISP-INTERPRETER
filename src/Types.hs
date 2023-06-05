@@ -33,7 +33,7 @@ instance Ord (Environment) where
 type MacroEnvironment = Map.Map MacroName Value 
 type MacroName = SExpr
 
-data BO = ADD | SUB | MUL deriving (Eq, Ord)
+data BO = ADD | SUB | MUL | EXPT deriving (Eq, Ord)
 data BP = GT' | GTQ' | LT' | LTQ' | EQ' deriving (Eq, Ord)
 
 
@@ -41,6 +41,7 @@ instance Show BO where
   show ADD = "+"
   show SUB = "-"
   show MUL = "*"
+  show EXPT = "^"
 
 instance Show BP where
   show GT' = ">"
@@ -60,7 +61,7 @@ instance Show SExpr where
   show (SForm sf) = show sf
   show (BOper bo) = show bo
   show (BPrim bp) = show bp
-  show Void = "{Void}"
+  show Void = "{}"
 
 instance Show SF where
   show DEF = "DEF"

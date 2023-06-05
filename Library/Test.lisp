@@ -19,6 +19,13 @@
   11
   12
 )
+
+(defun acc-gen (a)
+  ((defun acc-get () a)
+  (defun acc-add (v) ((setq a (+ a v)) a))
+  (defun acc-sub (v) ((setq a (- a v)) a))
+  (lambda (exp) (eval exp))))
+
 )
 
 ; ((macro (x y z) '((x y z))) a b (c d));
