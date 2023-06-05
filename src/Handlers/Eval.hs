@@ -71,7 +71,8 @@ eval h env (List [SForm DEF, Atom name, value]) = do
   L.writeLog (logger h) $ T.pack ("eval def " ++ show name ++ " " ++ show value)
   value' <- eval h env value -- vopros nado li vuchislat disskusionnuj
   S.insert (scope h) env name value'
-  pure $ Bool True
+  -- pure $ Bool True
+  pure $ Void
 --------------------------------------------------GET
 eval h env (List [SForm GET, Atom name]) = do
   L.writeLog (logger h) $ T.pack ("eval get " ++ show name)
@@ -158,7 +159,9 @@ apply h env (BPrim p) xs = do
   (x : y : _) <- xs -- possible error pattern matching
   case p of
     GT' -> pure $ Bool $ bprim (>) x y
+    GTQ' -> pure $ Bool $ bprim (>=) x y
     LT' -> pure $ Bool $ bprim (<) x y
+    LTQ' -> pure $ Bool $ bprim (<=) x y
     EQ' -> pure $ Bool $ bprim (==) x y
 
 apply h env (SForm TYPEOF) xs = do 
@@ -197,7 +200,8 @@ apply h env (SForm PRINT) xs = do
   (x : _)  <- xs -- possible error pattern matching
   -- x <- head <$> xs
   hPrint h x
-  pure $ Bool True
+  -- pure $ Bool True
+  pure $ Void
 
 apply h env (SForm LIST) xs = do 
   L.writeLog (logger h) "apply print list. If empty list = error " 

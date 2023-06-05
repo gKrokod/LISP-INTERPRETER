@@ -10,8 +10,9 @@ data SExpr = Atom String  -- +
            | Bool Bool  -- +
            | SForm SF -- +-
            | BOper BO -- +
-           | BPrim BP deriving (Eq, Ord) -- +
-
+           | BPrim BP 
+           | Void deriving (Eq, Ord) --  затычка
+ 
 data SF    = DEF | SET | GET  -- + + +
            | QUOTE | TYPEOF -- + +
            | CONS | CAR | CDR | COND -- + + + +
@@ -33,7 +34,7 @@ type MacroEnvironment = Map.Map MacroName Value
 type MacroName = SExpr
 
 data BO = ADD | SUB | MUL deriving (Eq, Ord)
-data BP = GT' | LT' | EQ' deriving (Eq, Ord)
+data BP = GT' | GTQ' | LT' | LTQ' | EQ' deriving (Eq, Ord)
 
 
 instance Show BO where
@@ -43,7 +44,9 @@ instance Show BO where
 
 instance Show BP where
   show GT' = ">"
+  show GTQ' = ">="
   show LT' = "<"
+  show LTQ' = "<="
   show EQ' = "=="
 
 instance Show SExpr where
@@ -57,6 +60,7 @@ instance Show SExpr where
   show (SForm sf) = show sf
   show (BOper bo) = show bo
   show (BPrim bp) = show bp
+  show Void = "{Void}"
 
 instance Show SF where
   show DEF = "DEF"

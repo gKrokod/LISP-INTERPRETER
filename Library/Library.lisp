@@ -16,10 +16,42 @@
 
 ;------------------------------------------------- extension core;
 (def nil '())
+(def void "{}") ; затычка не связанная с SExpre Void, но несущая тот же смысл ;
 (defmacro null args (== args nil))
-(defmacro not arg (cond (arg #f) ((== (typeof arg) "Bool") #t) (#t (print "Exception not bool argument"))))) 
-(defmacro if (predicate thenDo elseDo) (cond (predicate thenDo) ((== (typeof arg) "Bool") elseDo) (#t (print "Exception not bool argument") ))) ; eq $ bool p then else;
+
+(defmacro isBool arg (== "Bool" (typeof arg)))
+(defmacro isNumber arg (== "Number" (typeof arg)))
+(defmacro isString arg (== "String" (typeof arg)))
+(defmacro isAtom arg (== "Atom" (typeof arg)))
+(defmacro isList arg (== "List" (typeof arg)))
+
+(defmacro not arg (cond (arg #f) 
+                        ((isBool arg) #t) 
+                        (#t (print "Exception not bool argument"))))) 
+(defmacro if (predicate thenDo elseDo) (cond (predicate thenDo) 
+                                             ((isBool predicate) elseDo) 
+                                             (#t (print "Exception not bool argument") ))) ; eq $ bool p then else;
 (defmacro setq (atom value) (set 'atom value))
+
+;--Logic family;
+
+(defmacro and (x y) (if (isBool x)
+                       (if (isBool y) 
+                          (cond (x y) (#t #f) ) ((print "Exception not bool second argument") void) ) 
+                       ((print "Exception not bool argument") void) ))
+(defmacro or (x y) (if (isBool x)
+                       (if (isBool y) 
+                          (cond (x #t) (#t y) ) ((print "Exception not bool second argument") void) ) 
+                       ((print "Exception not bool argument") void) ))
+(defmacro xor (x y) (and (or x y) (not (and x y))))
+
+;--Logic Arithmetic;
+(defun abs x (if (> x 0) x (* (-1) x))) 
+(defun max (x y) (if (> x y) x y)) 
+(defun min (x y) (if (< x y) x y)) 
+
+;(defun id (x) (x)) ;
+;(defmacro idd (x) ('(x))) ;
 
 ;-------------------- CAR and CDR family ;
 (defmacro cdar args (cdr (car args)))

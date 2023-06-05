@@ -58,12 +58,6 @@ parseNumber :: Parser SExpr
 parseNumber = try (char '-' >> many1 digit >>= pure . Number . read . ("-" ++))
               <|> (many1 digit >>= pure . Number . read)
 
-parseString :: Parser SExpr
-parseString = do
-  void $ char '"'
-  str <- many $ noneOf "\""
-  void $ char '"'
-  pure $ String str
 
 parseList :: Parser SExpr 
 parseList = do
@@ -104,6 +98,8 @@ parseAtom = do
     "*" -> BOper MUL
     ">" -> BPrim GT'
     "<" -> BPrim LT'
+    ">=" -> BPrim GTQ'
+    "<=" -> BPrim LTQ'
     "==" -> BPrim EQ'
     otherwise -> Atom atom
   -- try (do {whitespace; parseAtom}) <|> ( --если в строке есть еще атомы, то верни последний, но э
@@ -144,4 +140,9 @@ parseAnySExpr = do
   choice [parseNumber, parseString, parseQuoted, parseList,  parseAtom]
 
 
-
+parseString :: Parser SExpr
+parseString = do
+  void $ char '"'
+  str <- many $ noneOf "\""
+  void $ char '"'
+  pure $ String str
