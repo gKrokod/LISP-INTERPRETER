@@ -52,6 +52,12 @@
 
 ;(defun id (x) (x)) ;
 ;(defmacro idd (x) ('(x))) ;
+(defun fib x 
+  (cond ((== 0 x) 0)
+        ((== 1 x) 1)
+        (#t (+ (fib (- x 1))
+               (fib (- x 2))))))
+        
 
 ;-------------------- CAR and CDR family ;
 (defmacro cdar args (cdr (car args)))
