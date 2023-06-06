@@ -88,7 +88,7 @@ parseAtom = do
     "read" -> SForm READ
     "print" -> SForm PRINT
     "eval" -> SForm EVAL
-    "evalin" -> SForm EVALIN
+    "eval-in" -> SForm EVALIN
     "lambda" -> SForm LAMBDA
     -- "lam" -> SForm LAMBDA
     "macro" -> SForm MACRO

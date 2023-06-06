@@ -67,7 +67,7 @@ instance Show SF where
   show DEF = "DEF"
   show GET = "GET"
   show SET = "SET"
-  show TYPEOF = "TYPE-OF"
+  show TYPEOF = "TYPEOF"
   show CONS = "CONS"
   show CAR = "CAR"
   show CDR = "CDR"

@@ -1,6 +1,5 @@
 import Types 
 import Parser
-import Eval
 
 import Test.Hspec (context, describe, hspec, it, shouldBe, shouldNotBe)
 import Test.Hspec.QuickCheck (modifyMaxSuccess)
@@ -8,6 +7,12 @@ import Test.QuickCheck (property)
 import Text.Parsec
 import Data.Either
 import Data.Bool
+import qualified Handlers.Scope
+import qualified Handlers.Logger
+import qualified Handlers.Eval
+import qualified Eval.Eval
+import qualified Scope.Scope
+import qualified Data.Map as Map
 
 main :: IO ()
 main = hspec $ do
@@ -32,7 +37,7 @@ main = hspec $ do
                      else if head str `elem` firstSymbol
                        then [head str] ++ filter (`elem` restSymbol) (tail str)
                        else "a"
-          let dictionary = ["<", ">", "==", "-","+","*", "l", "#t", "#f", "def"] -- and some other
+          let dictionary = ["<", ">", "==", "-","+","*", "lambda", "#t", "#f", "def", "^","macro"] -- and some other
           let str'' = bool str' (str' ++ "a") $ str' `elem` dictionary
           fromRight (Atom "") (parse parseAtom "lisp" str'') 
             `shouldBe` Atom str'' 
@@ -60,11 +65,11 @@ main = hspec $ do
         `shouldBe` (Bool False) 
       fromRight (Atom "") (parse parseInput "lisp" "def") 
         `shouldBe` (SForm DEF) 
-      fromRight (Atom "") (parse parseInput "lisp" "set!") 
+      fromRight (Atom "") (parse parseInput "lisp" "set") 
         `shouldBe` (SForm SET) 
       fromRight (Atom "") (parse parseInput "lisp" "get") 
         `shouldBe` (SForm GET) 
-      fromRight (Atom "") (parse parseInput "lisp" "    type-of") 
+      fromRight (Atom "") (parse parseInput "lisp" "    typeof") 
         `shouldBe` (SForm TYPEOF) 
       fromRight (Atom "") (parse parseInput "lisp" "cons") 
         `shouldBe` (SForm CONS) 
@@ -84,7 +89,7 @@ main = hspec $ do
         `shouldBe` (SForm EVAL)
       fromRight (Atom "") (parse parseInput "lisp" "eval-in") 
         `shouldBe` (SForm EVALIN)
-      fromRight (Atom "") (parse parseInput "lisp" "l") 
+      fromRight (Atom "") (parse parseInput "lisp" "lambda") 
         `shouldBe` (SForm LAMBDA)
       fromRight (Atom "") (parse parseInput "lisp" "macro") 
         `shouldBe` (SForm MACRO)
@@ -100,27 +105,87 @@ main = hspec $ do
         `shouldBe` (BPrim LT')
       fromRight (Atom "") (parse parseInput "lisp" "==") 
         `shouldBe` (BPrim EQ')
+      fromRight (Atom "") (parse parseInput "lisp" "^") 
+        `shouldBe` (BOper EXPT)
+  describe "Library" $ do
+    -- resultEval <- (Handlers.Eval.eval handleEval globalScope msg)
+    -- show (resultEval) `shouldBe` "5"
+    let handleScope =
+          Handlers.Scope.Handle
+                  {   
+                    Handlers.Scope.makeLocalEnvironment = Scope.Scope.makeLocalEnvironment 
+                  , Handlers.Scope.fullLocalEnvironment = Scope.Scope.fullLocalEnvironment 
+                  , Handlers.Scope.clearEnvironment = undefined 
+                  , Handlers.Scope.check = Scope.Scope.check
+                  , Handlers.Scope.insert = Scope.Scope.insert
+                  , Handlers.Scope.update = Scope.Scope.update
+                  } -- :: Handlers.Scope.Handle IO
+        -- set Logger
+    let handleLog = Handlers.Logger.Handle
+                  {Handlers.Logger.writeLog = \msg -> pure ()}
+        -- construct Eval
+    let h =
+                Handlers.Eval.Handle
+                  {   
+                    Handlers.Eval.scope= handleScope
+                  , Handlers.Eval.logger = handleLog
+                  , Handlers.Eval.hRead = undefined --Eval.Eval.hRead
+                  , Handlers.Eval.hPrint = undefined --Eval.Eval.hPrint
+                  }
+    context "Car, cdr, family" $ do
+      it "car, Cdar, caar,cadr,cddr,cdddr,cadar,caddr,cadddr" $ do
+              n <- Scope.Scope.createEnvironment
+              env <- Scope.Scope.makeLocalEnvironment n (Map.empty)
+              fileInput <- clearComment <$> readFile "Library/Library.lisp" 
+              case parse parseInput "lisp" fileInput of
+                Right msg -> do
+                  resultEval <- Handlers.Eval.eval h env msg -- load base library
+-- check answer
+                  let test1 = parse' "car '((1 2)(3 4))"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(1 2)"
 
-  describe "Eval" $ modifyMaxSuccess (const 1000) $ do
-    context "random input" $ do
-      it "Input: Number" $ do
-        property $ \int -> do
-          (eval $ Number int) 
-            `shouldBe`  Number int 
+                  let test1 = parse' "car '(1 2 3 4)"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "1"
 
-      it "Input: Str" $ do
-        property $ \str -> do
-          let clearStr = filter (/='\"') str
-          (eval $ String clearStr)
-            `shouldBe` String clearStr 
+                  let test1 = parse' "cdar '((1 2)(3 4))"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(2)"
 
-    it "fix test" $ do
-      (eval $ Bool True)
-        `shouldBe` (Bool True )
-      (eval $ Bool False)
-        `shouldBe` (Bool False )
-      (eval $ List [Atom "quote", Bool False])
-        `shouldBe` ( Bool False)
-      (eval $ List [Atom "quote", List [Number 1, Number 2]])
-        `shouldBe` (List [Number 1, Number 2])
+                  let test1 = parse' "caar '((1 2)(3 4))"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "1"
+
+                  let test1 = parse' "cadr '((1 2)(3 4))"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(3 4)"
+
+                  let test1 = parse' "cddr '((1 2)(3 4))"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "NIL"
+
+                  let test1 = parse' "cdddr '(1 2 3 4)"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(4)"
+
+                  let test1 = parse' "cadar '((1 2)( 3 4) (5 6))"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "2"
+
+                  let test1 = parse' "caddr '((1 2)( 3 4) (5 6))"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(5 6)"
+
+                  let test1 = parse' "cadddr '(1 2 3 4 5 6)"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "4"
+                _ -> undefined
+
+parse' :: String -> SExpr
+parse' txt = case parse parseInput "lisp" txt of
+  Right msg -> msg
+  _ -> undefined 
+
+
 

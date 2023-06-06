@@ -59,7 +59,6 @@
 (defmacro neq (x y) (cond ((== (typeof x) (typeof y)) (not (== x y)))
                           (#t ((print "Exception different types on arguments") void))))
 
-
 ;--Logic Arithmetic;
 (defun abs x (if (> x 0) x (* (-1) x))) 
 (defun max (x y) (if (> x y) x y)) 
@@ -72,7 +71,6 @@
         ((== 1 x) 1)
         (#t (+ (fib (- x 1))
                (fib (- x 2))))))
-        
 
 ;-------------------- CAR and CDR family ;
 (defmacro cdar args (cdr (car args)))
