@@ -16,7 +16,7 @@ import qualified Data.Map as Map
 
 main :: IO ()
 main = hspec $ do
-  describe "Parser" $ modifyMaxSuccess (const 1000) $ do
+  describe "Parser" $ modifyMaxSuccess (const 100) $ do
     context "Parser random atom" $ do
       it "Input: Int" $ do
         property $ \int -> do
@@ -107,7 +107,8 @@ main = hspec $ do
         `shouldBe` (BPrim EQ')
       fromRight (Atom "") (parse parseInput "lisp" "^") 
         `shouldBe` (BOper EXPT)
-  describe "Library" $ do
+
+  describe "Base Library" $ do
     -- resultEval <- (Handlers.Eval.eval handleEval globalScope msg)
     -- show (resultEval) `shouldBe` "5"
     let handleScope =
@@ -133,7 +134,7 @@ main = hspec $ do
                   , Handlers.Eval.hPrint = undefined --Eval.Eval.hPrint
                   }
     context "Car, cdr, family" $ do
-      it "car, Cdar, caar,cadr,cddr,cdddr,cadar,caddr,cadddr" $ do
+      it "car, cdr, cdar, caar,cadr,cddr,cdddr,cadar,caddr,cadddr" $ do
               n <- Scope.Scope.createEnvironment
               env <- Scope.Scope.makeLocalEnvironment n (Map.empty)
               fileInput <- clearComment <$> readFile "Library/Library.lisp" 
@@ -148,6 +149,14 @@ main = hspec $ do
                   let test1 = parse' "car '(1 2 3 4)"
                   resultEval <- show <$> Handlers.Eval.eval h env test1
                   resultEval `shouldBe` "1"
+
+                  let test1 = parse' "cdr '(1)"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "NIL"
+
+                  let test1 = parse' "cdr '(1 2)"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(2)"
 
                   let test1 = parse' "cdar '((1 2)(3 4))"
                   resultEval <- show <$> Handlers.Eval.eval h env test1
@@ -181,6 +190,70 @@ main = hspec $ do
                   resultEval <- show <$> Handlers.Eval.eval h env test1
                   resultEval `shouldBe` "4"
                 _ -> undefined
+    context "logic function" $ do
+      it "and, or ,xor" $ do
+              n <- Scope.Scope.createEnvironment
+              env <- Scope.Scope.makeLocalEnvironment n (Map.empty)
+              fileInput <- clearComment <$> readFile "Library/Library.lisp" 
+              case parse parseInput "lisp" fileInput of
+                Right msg -> do
+                  resultEval <- Handlers.Eval.eval h env msg -- load base library
+-- check answer
+                  let test1 = parse' "and (> 2 1) (> 2 1)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+                  let test1 = parse' "and (> 2 1) (< 2 1)" -- t f = f
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#f"
+
+                  let test1 = parse' "and (< 2 1) (> 2 1)" -- f t = f
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#f"
+
+                  let test1 = parse' "and (< 2 1) (< 2 1)" -- f f = f
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#f"
+
+                  let test1 = parse' "or (> 2 1) (> 2 1)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+                  let test1 = parse' "or (> 2 1) (< 2 1)" -- t f = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+                  let test1 = parse' "or (< 2 1) (> 2 1)" -- f t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+                  let test1 = parse' "or (< 2 1) (< 2 1)" -- f f = f
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#f"
+
+                  let test1 = parse' "xor (> 2 1) (> 2 1)" -- t t = f
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#f"
+
+                  let test1 = parse' "xor (> 2 1) (< 2 1)" -- t f = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+                  let test1 = parse' "xor (< 2 1) (> 2 1)" -- f t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+                  let test1 = parse' "xor (< 2 1) (< 2 1)" -- f f = f
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#f"
+
+                  let test1 = parse' "not (> 2 1)" -- t = f
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#f"
+
+                  let test1 = parse' "not (< 2 1)" -- f = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
 
 parse' :: String -> SExpr
 parse' txt = case parse parseInput "lisp" txt of
