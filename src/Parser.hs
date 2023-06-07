@@ -3,6 +3,7 @@ module Parser where
 import Types
 import Text.Parsec
 import Text.Parsec.String (Parser)
+import Text.Parsec.Char (string)
 import Control.Monad 
 
 -------------------------------------------------- Parser for Pretty Printer
@@ -54,11 +55,33 @@ lexeme p = do
            whitespace
            return x
 
+parseNum :: Parser SExpr -- надо чтобы без точки отказывал считать число
+parseNum = try (char '-' 
+               >> many1 digit 
+               >>= \n -> char '.' 
+               >> many digit 
+               >>= \d -> ((string "e-" <|> string "E-") -- это для формы чисел 1.23e-10
+                           >> many1 digit 
+                           >>= \exp -> pure $ Num $ read ("-" <> n <> "." <> d <> "0e-" <> exp) )
+                         <|> (pure $ Num $ read ("-" <> n <> "." <> d <> "0") )) -- добавляем 0 чтобы считывать 1. = 1.0
+           <|> try (many1 digit 
+               >>= \n -> char '.' 
+               >> many digit 
+               >>= \d -> ((string "e-" <|> string "E-") 
+                           >> many1 digit 
+                           >>= \exp -> pure $ Num $ read (n <> "." <> d <> "0e-" <> exp) )
+                         <|> (pure $ Num $ read (n <> "." <> d <> "0") ))
+
 parseNumber :: Parser SExpr
 parseNumber = try (char '-' >> many1 digit >>= pure . Number . read . ("-" ++))
               <|> (many1 digit >>= pure . Number . read)
 
+-- рабочий вариант парсинга целых положительных и отрицательных чисел, сохранил перед добавлением double
+-- parseNumber :: Parser SExpr
+-- parseNumber = try (char '-' >> many1 digit >>= pure . Number . read . ("-" ++))
+--               <|> (many1 digit >>= pure . Number . read)
 
+--
 parseList :: Parser SExpr 
 parseList = do
   void $ char '('
@@ -103,33 +126,6 @@ parseAtom = do
     "<=" -> BPrim LTQ'
     "==" -> BPrim EQ'
     otherwise -> Atom atom
-  -- try (do {whitespace; parseAtom}) <|> ( --если в строке есть еще атомы, то верни последний, но э
-  -- походу этим должен заниматься эвулятор
-          -- pure $ case atom of
-          --   "#t" -> Bool True 
-          --   "#f" -> Bool False
-          --   "def" -> SForm DEF
-          --   "set!" -> SForm SET
-          --   "get" -> SForm GET
-          --   "type-of" -> SForm TYPEOF
-          --   "cons" -> SForm CONS
-          --   "car" -> SForm CAR
-          --   "cdr" -> SForm CDR
-          --   "cond" -> SForm COND
-          --   "if" -> SForm IF
-          --   "read" -> SForm READ
-          --   "print" -> SForm PRINT
-          --   "eval" -> SForm EVAL
-          --   "eval-in" -> SForm EVALIN
-          --   "l" -> SForm LAMBDA
-          --   "macro" -> SForm MACRO
-          --   "+" -> BOper ADD
-          --   "-" -> BOper SUB
-          --   "*" -> BOper MUL
-          --   ">" -> BPrim GT'
-          --   "<" -> BPrim LT'
-          --   "==" -> BPrim EQ'
-          --   otherwise -> Atom atom)
 
 parseQuoted :: Parser SExpr
 parseQuoted = char '\'' *> parseAnySExpr >>= \x -> pure $ List [Atom "quote", x] 
@@ -138,7 +134,7 @@ parseAnySExpr :: Parser SExpr
 parseAnySExpr = do
   whitespace
   -- parseNumber <|> parseAtom <|> parseString<|> parseQuoted<|> parseList
-  choice [parseNumber, parseString, parseQuoted, parseList,  parseAtom]
+  choice [parseNum, parseNumber, parseString, parseQuoted, parseList,  parseAtom]
 
 
 parseString :: Parser SExpr

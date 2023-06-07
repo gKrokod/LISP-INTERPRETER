@@ -22,7 +22,12 @@
 (defmacro null args (== args nil))
 
 (defmacro isBool arg (== "Bool" (typeof arg)))
-(defmacro isNumber arg (== "Number" (typeof arg)))
+(defmacro isInt arg (== "Int" (typeof arg)))
+(defmacro isDouble arg (== "Double" (typeof arg)))
+(defmacro isNumber arg (cond ((isInt arg) #t)
+                             ((isDouble arg) #t)
+                             (#t #f))) 
+
 (defmacro isString arg (== "String" (typeof arg)))
 (defmacro isAtom arg (== "Atom" (typeof arg)))
 (defmacro isList arg (== "List" (typeof arg)))

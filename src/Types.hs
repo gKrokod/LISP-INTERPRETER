@@ -6,6 +6,7 @@ import qualified Data.Map.Strict as Map
 data SExpr = Atom String  -- +
            | List [SExpr] -- +
            | Number Int  -- +
+           | Num Double  -- +
            | String String -- +
            | Bool Bool  -- +
            | SForm SF -- +-
@@ -55,6 +56,7 @@ instance Show SExpr where
   show (List []) = "NIL"
   show (List xs) = "(" ++ intercalate " " (map show xs) ++ ")"
   show (Number int) = show int
+  show (Num double) = show double
   show (String str) = "\"" ++ str ++ "\""
   show (Bool False) = "#f" 
   show (Bool True) = "#t" 

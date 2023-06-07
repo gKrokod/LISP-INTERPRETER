@@ -28,6 +28,9 @@ eval :: (MonadFail m, Monad m) => Handle m -> Environment -> SExpr -> m (SExpr)
 eval h env expr@(Number _) = do
   L.writeLog (logger h) "eval Number" 
   pure expr
+eval h env expr@(Num _) = do
+  L.writeLog (logger h) "eval Num" 
+  pure expr
 eval h env expr@(String _) = do 
   L.writeLog (logger h) "eval String" 
   pure expr
@@ -171,7 +174,8 @@ apply h env (SForm TYPEOF) xs = do
   case x of
     Atom _ -> pure $ String "Atom"
     List _ -> pure $ String "List"
-    Number _ -> pure $ String "Number"
+    Number _ -> pure $ String "Int"
+    Num _ -> pure $ String "Double"
     String _ -> pure $ String "String"
     Bool _ -> pure $ String "Bool"
     SForm _ -> pure $ String "SForm"

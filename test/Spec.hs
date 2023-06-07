@@ -16,12 +16,17 @@ import qualified Data.Map as Map
 
 main :: IO ()
 main = hspec $ do
-  describe "Parser" $ modifyMaxSuccess (const 100) $ do
+  describe "Parser" $ modifyMaxSuccess (const 10000) $ do
     context "Parser random atom" $ do
       it "Input: Int" $ do
         property $ \int -> do
           fromRight (Number 0) (parse parseNumber "lisp" (show int))
             `shouldBe`  Number int 
+
+      it "Input: Double" $ do
+        property $ \double -> do
+          fromRight (Num 0.0) (parse parseNum "lisp" (show double))
+            `shouldBe`  Num double
 
       it "Input: Str" $ do
         property $ \str -> do
