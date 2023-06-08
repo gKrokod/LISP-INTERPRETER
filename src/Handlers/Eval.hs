@@ -8,7 +8,7 @@ import Data.List (foldl1')
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import Eval.Macros (mExpand, atomExprToMacroName)
-import Eval.Eval (atomExprToName, bprim, boper)
+import Eval.Eval (atomExprToName, bprim, boper, bexpt, bdivNum, bdiv, bmod)
 import Data.Function
 import Control.Exception (SomeException, try, evaluate)
 
@@ -156,7 +156,10 @@ apply h env (BOper f) xs = do
     ADD -> pure $ foldl1' (boper (+)) xs'
     SUB -> pure $ foldl1' (boper (-)) xs'
     MUL -> pure $ foldl1' (boper (*)) xs' 
-    -- EXPT -> pure $ foldl1' (boper (**)) xs' 
+    DIVN -> pure $ foldl1' (bdivNum) xs' 
+    EXPT -> pure $ foldl1' (bexpt) xs' 
+    DIV -> pure $ foldl1' (bdiv) xs' 
+    MOD -> pure $ foldl1' (bmod) xs' 
 --
 apply h env (BPrim p) xs = do 
   L.writeLog (logger h) "apply BPrim func.  If empty list = error" 

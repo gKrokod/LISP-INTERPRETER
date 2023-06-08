@@ -68,14 +68,28 @@
 (defun abs x (if (> x 0) x (* (-1) x))) 
 (defun max (x y) (if (> x y) x y)) 
 (defun min (x y) (if (< x y) x y)) 
-
+(defun signum x (cond ((not (isNumber x)) (print "Exception: not a Number")) 
+                      ((> x 0) 1)
+                      ((< x 0) (-1))
+                      ((== x 0) 0)))
+; id, map ;
 (defun id x x)
-;(defmacro idd (x) ('(x))) ;
+(defun map (f xs) (cond ((null xs) nil)
+                       (#t (cons (f (car xs)) (pf (cdr xs) f)))))
+
+; пример расчета чисел фибоначчи ;
 (defun fib x 
   (cond ((== 0 x) 0)
         ((== 1 x) 1)
         (#t (+ (fib (- x 1))
                (fib (- x 2))))))
+
+; пример передачи функции в качестве аргумента;
+(defun x2 (x) (^ x 2))
+(defun pf (xs f) (cond ((null xs) nil)
+                       (#t (cons (f (car xs)) (pf (cdr xs) f)))))
+
+
 
 ;-------------------- CAR and CDR family ;
 (defmacro cdar args (cdr (car args)))
@@ -112,7 +126,11 @@
 ; sum-list xs = ;
 ;  ex: sum-list '(1 2 30) = 33;
 ; defun name args body - функция с именем name, списком формальных параметров args и телом body;
-;  ex: defun sqr (x) (* x x) ;
+; \div = div ;
+; \mod = mod ;
+; \ = \ ;
+; ^ = ^ or **;
+; + = + or ++;
 
 
 

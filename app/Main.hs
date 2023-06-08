@@ -32,7 +32,7 @@ main :: IO ()
 main = do
 -- make Scope
   nilScope <- Scope.Scope.createEnvironment
-  globalScope <- Scope.Scope.makeLocalEnvironment nilScope (Map.fromList [("pi", Number 3)])
+  globalScope <- Scope.Scope.makeLocalEnvironment nilScope (Map.fromList [("pi", Num 3.14)])
   let handleScope =
         Handlers.Scope.Handle
           {   

@@ -2,6 +2,7 @@ module Types where
 import Control.Concurrent (MVar)
 import Data.List (intercalate)
 import qualified Data.Map.Strict as Map
+import Text.Printf
 
 data SExpr = Atom String  -- +
            | List [SExpr] -- +
@@ -34,7 +35,7 @@ instance Ord (Environment) where
 type MacroEnvironment = Map.Map MacroName Value 
 type MacroName = SExpr
 
-data BO = ADD | SUB | MUL | EXPT deriving (Eq, Ord)
+data BO = ADD | SUB | MUL | EXPT | DIV | MOD | DIVN deriving (Eq, Ord)
 data BP = GT' | GTQ' | LT' | LTQ' | EQ' deriving (Eq, Ord)
 
 
@@ -43,6 +44,9 @@ instance Show BO where
   show SUB = "-"
   show MUL = "*"
   show EXPT = "^"
+  show DIVN = "/"
+  show DIV = "/div" 
+  show MOD = "/mod"
 
 instance Show BP where
   show GT' = ">"
@@ -56,7 +60,7 @@ instance Show SExpr where
   show (List []) = "NIL"
   show (List xs) = "(" ++ intercalate " " (map show xs) ++ ")"
   show (Number int) = show int
-  show (Num double) = show double
+  show (Num double) = printf "%.2f" double
   show (String str) = "\"" ++ str ++ "\""
   show (Bool False) = "#f" 
   show (Bool True) = "#t" 

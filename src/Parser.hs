@@ -120,6 +120,9 @@ parseAtom = do
     "-" -> BOper SUB
     "*" -> BOper MUL
     "^" -> BOper EXPT
+    "/" -> BOper DIVN
+    "/div" -> BOper DIV
+    "/mod" -> BOper MOD
     ">" -> BPrim GT'
     "<" -> BPrim LT'
     ">=" -> BPrim GTQ'

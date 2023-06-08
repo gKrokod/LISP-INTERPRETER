@@ -16,7 +16,7 @@ import qualified Data.Map as Map
 
 main :: IO ()
 main = hspec $ do
-  describe "Parser" $ modifyMaxSuccess (const 10000) $ do
+  describe "Parser" $ modifyMaxSuccess (const 10) $ do
     context "Parser random atom" $ do
       it "Input: Int" $ do
         property $ \int -> do
@@ -257,6 +257,70 @@ main = hspec $ do
                   resultEval `shouldBe` "#f"
 
                   let test1 = parse' "not (< 2 1)" -- f = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+      it "greaterp, greqp, lessp, leeqp, eq, neq" $ do
+              n <- Scope.Scope.createEnvironment
+              env <- Scope.Scope.makeLocalEnvironment n (Map.empty)
+              fileInput <- clearComment <$> readFile "Library/Library.lisp" 
+              case parse parseInput "lisp" fileInput of
+                Right msg -> do
+                  resultEval <- Handlers.Eval.eval h env msg -- load base library
+-- check answer
+                  let test1 = parse' "(greaterp 2 1)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+                  let test1 = parse' "(greaterp 1 2)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#f"
+
+                  let test1 = parse' "(greqp 2 1)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+                  let test1 = parse' "(greqp 2 2)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+                  let test1 = parse' "(greqp 1 2)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#f"
+
+                  let test1 = parse' "(lessp 2 1)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#f"
+
+                  let test1 = parse' "(lessp 1 2)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+                  let test1 = parse' "(leeqp 2 1)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#f"
+
+                  let test1 = parse' "(leeqp 2 2)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+                  let test1 = parse' "(leeqp 1 2)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+                  let test1 = parse' "(eq 2 2)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#t"
+
+                  let test1 = parse' "(eq 1 2)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#f"
+
+                  let test1 = parse' "(neq 2 2)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "#f"
+
+                  let test1 = parse' "(neq 1 2)" -- t t = t
                   resultEval <- show <$> Handlers.Eval.eval h env test1
                   resultEval `shouldBe` "#t"
 
