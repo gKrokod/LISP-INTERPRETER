@@ -76,6 +76,7 @@
                       ((== x 0) 0)))
 
 (defun id x x)
+(defmacro idm x x)
 
 ;-- List function: map, mapN, foldr, enumFromTo ;
 (defun mapN (f xs) (cond ((null xs) nil)
@@ -86,22 +87,23 @@
                                     (#t (go (cdr xs) (cons (f (car xs)) result)))))
         (reverse (go xs nil))))
 
-(defun enumFromTo (start end) (
-        (defun go (i result) (cond ((== i end) (cons i result))
+(defun enum (start end) (
+        (defun go (i result) (cond ((== i end) (reverse (cons i result)))
                                     (#t (go (+ i 1) (cons i result)))))
         (go start nil)))
 
-(defmacro fallN n (mapN x2 (enumFromTo 1 n)) )
-(defmacro fall n (map x2 (enumFromTo 1 n)) )
+(defmacro fallN n (mapN x2 (enum 1 n)) )
+(defmacro fall n (map x2 (enum 1 n)) )
 
 (defun foldr (f ini xs) (
         (defun go (as acc) (cond ((null as) acc)
                                  (#t (go (cdr as) (f (car as) acc)))))
         (go xs ini) ))
 
-(defun foldl (f ini xs) (
-        (defun go (x g y) (g (f y x)))
-        ((foldr go id xs) ini) ))
+
+; (defmacro foldl (f ini xs) (;
+;         (defmacro gol (x g y) (g (f y x)));
+;         ((foldrm gol id xs ini) ));
 
 ; ghci> le f ini xs = foldr (\x g y -> g $ f y x) id xs in;
 ; ghci> foldl (-) 10 [1..10];
@@ -118,9 +120,8 @@
 ; пример передачи функции в качестве аргумента;
 (defun x2 (x) (^ x 2))
 
-(defun x3 (x) (^ x 2))
-
-(defun hoho (x y) (+ x y))
+(defun xp (x y) (+ x y))
+(defun xm (x y) (- x y))
 
 (defun pf (xs f) (cond ((null xs) nil)
                        (#t (cons (f (car xs)) (pf (cdr xs) f)))))
