@@ -45,8 +45,8 @@ instance Show BO where
   show MUL = "*"
   show EXPT = "^"
   show DIVN = "/"
-  show DIV = "/div" 
-  show MOD = "/mod"
+  show DIV = "div" 
+  show MOD = "mod"
 
 instance Show BP where
   show GT' = ">"

@@ -1,4 +1,6 @@
 ; make Test for defmacro ;
+; Реализуй reverse, map cherez go for tail optimisation i sravni, [1..n], foldr, ;
+; foldl f xs ini = foldr (\g x b -> g $ f x b) id xs ini ;
 (
 (def defmacro (macro (name args body) (def name (macro args body))))
 ;@\[name,args,body] -> (def name (macro args body));
@@ -72,10 +74,39 @@
                       ((> x 0) 1)
                       ((< x 0) (-1))
                       ((== x 0) 0)))
-; id, map ;
+
 (defun id x x)
-(defun map (f xs) (cond ((null xs) nil)
+
+;-- List function: map, mapN, foldr, enumFromTo ;
+(defun mapN (f xs) (cond ((null xs) nil)
                        (#t (cons (f (car xs)) (pf (cdr xs) f)))))
+
+(defun map (f xs) (
+        (defun go (xs result) (cond ((null xs) result)
+                                    (#t (go (cdr xs) (cons (f (car xs)) result)))))
+        (reverse (go xs nil))))
+
+(defun enumFromTo (start end) (
+        (defun go (i result) (cond ((== i end) (cons i result))
+                                    (#t (go (+ i 1) (cons i result)))))
+        (go start nil)))
+
+(defmacro fallN n (mapN x2 (enumFromTo 1 n)) )
+(defmacro fall n (map x2 (enumFromTo 1 n)) )
+
+(defun foldr (f ini xs) (
+        (defun go (as acc) (cond ((null as) acc)
+                                 (#t (go (cdr as) (f (car as) acc)))))
+        (go xs ini) ))
+
+(defun foldl (f ini xs) (
+        (defun go (x g y) (g (f y x)))
+        ((foldr go id xs) ini) ))
+
+; ghci> le f ini xs = foldr (\x g y -> g $ f y x) id xs in;
+; ghci> foldl (-) 10 [1..10];
+
+(defmacro reverse xs (foldr 'cons xs ()))
 
 ; пример расчета чисел фибоначчи ;
 (defun fib x 
@@ -86,6 +117,11 @@
 
 ; пример передачи функции в качестве аргумента;
 (defun x2 (x) (^ x 2))
+
+(defun x3 (x) (^ x 2))
+
+(defun hoho (x y) (+ x y))
+
 (defun pf (xs f) (cond ((null xs) nil)
                        (#t (cons (f (car xs)) (pf (cdr xs) f)))))
 
@@ -126,11 +162,15 @@
 ; sum-list xs = ;
 ;  ex: sum-list '(1 2 30) = 33;
 ; defun name args body - функция с именем name, списком формальных параметров args и телом body;
-; \div = div ;
-; \mod = mod ;
+; div = div ;
+; mod = mod ;
 ; \ = \ ;
 ; ^ = ^ or **;
 ; + = + or ++;
+; enumFromTo 1 10 = (1,1,2,3,4,5,6,7,8,9,10);
+; map f xs = map;
+; id = id;
+
 
 
 
