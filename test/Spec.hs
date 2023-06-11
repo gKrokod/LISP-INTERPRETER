@@ -195,7 +195,7 @@ main = hspec $ do
                   resultEval <- show <$> Handlers.Eval.eval h env test1
                   resultEval `shouldBe` "4"
                 _ -> undefined
-    context "logic function" $ do
+    context "logic functions" $ do
       it "and, or ,xor" $ do
               n <- Scope.Scope.createEnvironment
               env <- Scope.Scope.makeLocalEnvironment n (Map.empty)
@@ -323,6 +323,94 @@ main = hspec $ do
                   let test1 = parse' "(neq 1 2)" -- t t = t
                   resultEval <- show <$> Handlers.Eval.eval h env test1
                   resultEval `shouldBe` "#t"
+
+    context "List functions" $ do
+      it "enum, map, filter, foldr, foldl, reverse, take, drop" $ do
+              n <- Scope.Scope.createEnvironment
+              env <- Scope.Scope.makeLocalEnvironment n (Map.empty)
+              fileInput <- clearComment <$> readFile "Library/Library.lisp" 
+              case parse parseInput "lisp" fileInput of
+                Right msg -> do
+                  resultEval <- Handlers.Eval.eval h env msg -- load base library
+-- check answer
+                  let test1 = parse' "enum -1 10" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(-1 0 1 2 3 4 5 6 7 8 9 10)"
+
+                  let test1 = parse' "enum 1 1" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(1)"
+
+                  let test1 = parse' "enum 2 1" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "NIL"
+
+                  let test1 = parse' "enum -1 10" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(-1 0 1 2 3 4 5 6 7 8 9 10)"
+
+                  let test1 = parse' "map (lambda x (^ x 2)) '(1 2 3)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(1 4 9)"
+
+                  let test1 = parse' "filter (lambda x (> x 5)) '( 1 2 3 10 11 12)"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(10 11 12)"
+ 
+                  let test1 = parse' "foldr (lambda (x y) (- x y)) 10 '(1 2 3 4 5 6 7 8 9 10)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "5"
+
+                  let test1 = parse' "foldl (lambda (x y) (- x y)) 10 '(1 2 3 4 5 6 7 8 9 10)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "-45"
+
+                  let test1 = parse' "reverse '(1 2 3 4 5)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(5 4 3 2 1)"
+
+                  let test1 = parse' "take 3 '(1 2 3 4 5)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(1 2 3)"
+
+                  let test1 = parse' "take 0 '(1 2 3 4 5)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "NIL"
+
+                  let test1 = parse' "take 10 '(1 2 3 4 5)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(1 2 3 4 5)"
+
+                  let test1 = parse' "drop 3 '(1 2 3 4 5)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(4 5)"
+
+                  let test1 = parse' "drop 0 '(1 2 3 4 5)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "(1 2 3 4 5)"
+
+                  let test1 = parse' "drop 10 '(1 2 3 4 5)" -- t t = t
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "NIL"
+
+    context "Usefull functions" $ do
+      it "id, flip" $ do
+              n <- Scope.Scope.createEnvironment
+              env <- Scope.Scope.makeLocalEnvironment n (Map.empty)
+              fileInput <- clearComment <$> readFile "Library/Library.lisp" 
+              case parse parseInput "lisp" fileInput of
+                Right msg -> do
+                  resultEval <- Handlers.Eval.eval h env msg -- load base library
+-- check answer
+                  let test1 = parse' "(id (lambda x (^ x 2))) 9" 
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "81"
+
+                  let test1 = parse' "cons a '(1 2)" 
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  let test2 = parse' "(flip 'cons) '(1 2) a"
+                  resultEval2 <- show <$> Handlers.Eval.eval h env test2
+                  resultEval `shouldBe` resultEval2
 
 parse' :: String -> SExpr
 parse' txt = case parse parseInput "lisp" txt of

@@ -10,12 +10,14 @@
 ; @\[name,args,body] -> (def name (lambda args body));
 
 (defmacro defun (name args body) (def name (lambda args body)))
+(defmacro defn (name args body) (def name (lambda args body)))
+;(defmacro define (name body) (def name body));
 ; @\[name,args,body] -> (def name (lambda args body));
 
 ; (defmacro defnn_ (name_ args_ body_) (def name_ (lambda args_ body_))) для отладки было;
 ; @\[name_,args_,body_] -> (def name_ (lambda args_ body_));
-
-
+; def = define; 
+; defun = defn;
 ;------------------------------------------------- extension core;
 ; memory;
 (def nil '())
@@ -74,51 +76,63 @@
                       ((> x 0) 1)
                       ((< x 0) (-1))
                       ((== x 0) 0)))
+(defun sqr (x) (^ x 2))
+(defun sqrt (x) (^ x 0.5))
+(defun add (x y) (+ x y))
+(defun sub (x y) (- x y))
 
-(defmacro idm x x)
+;-- Usefull function id, flip;
+(defun id x x)
+(defun flip f (lambda (x y) (f y x)))
 
-;-- List function: map, mapN, foldr, enumFromTo ;
-(defun mapN (f xs) (cond ((null xs) nil)
-                       (#t (cons (f (car xs)) (pf (cdr xs) f)))))
+;-- List function: map, filter, foldr, foldl, enum, length, sum-list, take, drop;
+(defun enum (start end) (
+        (defun go (i result) (cond  ((> i end) nil) 
+                                    ((== i end) (cons i result))
+                                    (#t (go (+ i 1) (cons i result)))))
+        (reverse (go start nil))))
 
 (defun map (f xs) (
         (defun go (xs result) (cond ((null xs) result)
                                     (#t (go (cdr xs) (cons (f (car xs)) result)))))
         (reverse (go xs nil))))
 
-(defmacro fallN n (mapN x2 (enum 1 n)) )
-(defmacro fall n (map x2 (enum 1 n)) )
-
-
-(defun enum (start end) (
-        (defun go (i result) (cond ((== i end) (cons i result))
-                                    (#t (go (+ i 1) (cons i result)))))
-        (reverse (go start nil))))
-
-(defun id x x)
+(defun filter (p xs) (
+        (defun go (xs result) (cond ((null xs) result)
+                                    (#t (go (cdr xs) (if (p (car xs)) (cons (car xs) result) result)))))
+        (reverse (go xs nil))))
 
 (defun foldr (f acc xs)
   (cond ((null xs) acc)
         (#t (f (car xs) (foldr f acc (cdr xs))))))
 
-(defun foldl (f z xs)
+; ghci> foldl2r f ini xs = foldr (\x g y -> g $ f y x) id xs in;
+(defun foldl (f ini xs)
   ((foldr (lambda (x g) 
-            (lambda a (g (f a x))))
+            (lambda y (g (f y x))))
             id
             xs)
-   z))
+   ini))
 
 (defun reverse xs 
-  (foldl (lambda (xs y) (cons y xs)) nil xs))
+  (foldl (flip 'cons) nil xs))
 
-; (defmacro foldl (f ini xs) (;
-;         (defmacro gol (x g y) (g (f y x)));
-;         ((foldrm gol id xs ini) ));
+(defun length args (cond ((null args) 0) (#t (+ 1 (length (cdr args))))))
+(defun sum-list args (cond ((null args) 0) (#t (+ (car args) (sum-list (cdr args))))))
 
-; ghci> foldl2r f ini xs = foldr (\x g y -> g $ f y x) id xs in;
+(defun take (num xs) (
+  (defun go (num xs acc) ( cond ((null xs) acc)
+                                ((== num 0) acc)
+                                (#t (go (- num 1) (cdr xs) (cons (car xs) acc)))))
+  (reverse (go num xs nil))))
+
+(defun drop (num xs) (
+  cond ((null xs) nil)
+       ((== num 0) xs)
+       (#t (drop (- num 1) (cdr xs)))))
+
 ; ghci> foldl (-) 10 [1..10] = -45;
 ; ghci> foldr (-) 10 [1..10] = 5;
-
 
 ; пример расчета чисел фибоначчи ;
 (defun fib x 
@@ -126,15 +140,6 @@
         ((== 1 x) 1)
         (#t (+ (fib (- x 1))
                (fib (- x 2))))))
-; пример передачи функции в качестве аргумента;
-(defun x2 (x) (^ x 2))
-(defun xp (x y) (+ x y))
-(defun xm (x y) (- x y))
-
-(defun pf (xs f) (cond ((null xs) nil)
-                       (#t (cons (f (car xs)) (pf (cdr xs) f)))))
-
-
 
 ;-------------------- CAR and CDR family ;
 (defmacro cdar args (cdr (car args)))
@@ -146,14 +151,6 @@
 (defmacro caddr args (car (cdr (cdr args))))
 (defmacro cadddr args (car (cdr (cdr (cdr args)))))
 ;----------------------------------------;
-; base function;
-(defun length args (cond ((null args) 0) (#t (+ 1 (length (cdr args))))))
-(defun sum-list args (cond ((null args) 0) (#t (+ (car args) (sum-list (cdr args))))))
-
-;(def length (lambda args (cond ((null args) 0) (#t (+ 1 (length (cdr args)))))));
-;(def sum-list (lambda args (cond ((null args) 0) (#t (+ (car args) (sum-list (cdr args)))))));
-
-;(defun len args ((cond ((null args) 0) (#t (+ 1 (len (cdr args)))))));
 
 )
 ; ---------------------------------------- описание функций;
@@ -176,11 +173,8 @@
 ; \ = \ ;
 ; ^ = ^ or **;
 ; + = + or ++;
-; enumFromTo 1 10 = (1,1,2,3,4,5,6,7,8,9,10);
+; enum 1 10 = (1,1,2,3,4,5,6,7,8,9,10);
 ; map f xs = map;
 ; id = id;
-
-
-
-
-
+; flip = flip;
+; reverse = reverse;
