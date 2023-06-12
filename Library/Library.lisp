@@ -136,6 +136,13 @@
      nil
      (cons (list (car as) (car bs)) (zip (cdr as) (cdr bs)))))
 
+(defun partition (p xs) (
+  (defun go (xs as bs) (cond ((null xs) (list (reverse as) (reverse bs)))
+                             ((p (car xs)) (go (cdr xs) (cons (car xs) as) bs))
+                             (#t (go (cdr xs) as (cons (car xs) bs)))))
+  (go xs nil nil)
+  ))
+
 ; ghci> foldl (-) 10 [1..10] = -45;
 ; ghci> foldr (-) 10 [1..10] = 5;
 
@@ -183,3 +190,4 @@
 ; id = id;
 ; flip = flip;
 ; reverse = reverse;
+; partition = partition predicat list -> (filter predicat list, filter (not . predicat) list);

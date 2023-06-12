@@ -93,8 +93,15 @@ loop h env = do
           putStrLn "\n Parse Test file: \n"
           print msg 
           putStrLn "\n Eval: \n"
-          resultEval <- Handlers.Eval.eval h env msg
-          print resultEval 
+          resultEval <- try @PatternMatchFail (Handlers.Eval.eval h env msg)
+          case resultEval of
+              Left e -> do
+                print e--(e :: PatternMatchFail)
+                putStrLn "exception pattern \n"
+              Right r1 -> do 
+                putStrLn "exception right"
+                print r1
+          -- print resultEval 
     "base" -> do
       fileInput <- clearComment <$> readFile "Library/Library.lisp" 
       case parse parseInput "lisp" (fileInput) of

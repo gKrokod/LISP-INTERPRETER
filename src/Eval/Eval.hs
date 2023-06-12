@@ -40,7 +40,7 @@ bprim p (List []) (List bs) = False
 bprim p (List (a : as)) (List (b : bs)) = case (bprim (==) a b) of
                                            False -> bprim p a b
                                            True -> bprim p (List as) (List bs)   
-bprim p _ _ = error "bprim on undefined arguments"
+-- bprim p _ _ = error "bprim on undefined arguments"
 
 boper :: (forall a. (Num a) => a -> a -> a) -> SExpr -> SExpr -> SExpr
 boper func (Number a) (Number b) = Number $ func a b
@@ -50,7 +50,7 @@ boper func (Number a) (Num b) = Num $ func (fromIntegral a) b
 -- boper func (String a) (String b) = String $ a <> b 
 boper (+) (String a) (String b) = String $ a <> b  -- concat
 boper (-) (String a) (String b) = String $ a \\ b  -- list difference (non-associative)
-boper _ _ _  = error "boper in undefined arguments"
+-- boper _ _ _  = error "boper in undefined arguments"
 
 --- возведение в степень любых чисел
 bexpt:: SExpr -> SExpr -> SExpr
@@ -70,7 +70,7 @@ bdivNum (Number a) (Number b) = Num $ (fromIntegral a) / (fromIntegral b )
 -- целочисленное деление и удаление
 bdiv:: SExpr -> SExpr -> SExpr
 bdiv (Number a) (Number b) = Number $ a `div` b 
-bdiv _ _ = error "bdiv in undefined arguments"
+-- bdiv _ _ = error "bdiv in undefined arguments"
 bmod:: SExpr -> SExpr -> SExpr
 bmod (Number a) (Number b) = Number $ a `mod` b 
-bmod _ _ = error "bmod in undefined arguments"
+-- bmod _ _ = error "bmod in undefined arguments"

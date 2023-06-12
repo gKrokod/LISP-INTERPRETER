@@ -405,6 +405,15 @@ main = hspec $ do
                   resultEval <- show <$> Handlers.Eval.eval h env test1
                   resultEval `shouldBe` "((1 a) (2 b) (3 c))"
 
+
+                  let test1 = parse' "partition (lambda x (> x 2)) '(10 1 2 3 4 5)"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "((10 3 4 5) (1 2))"
+
+                  let test1 = parse' "partition isNumber '(10 1 2 a \"sss\" d)"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "((10 1 2) (a \"sss\" d))"
+
     context "Usefull functions" $ do
       it "id, flip" $ do
               n <- Scope.Scope.createEnvironment
