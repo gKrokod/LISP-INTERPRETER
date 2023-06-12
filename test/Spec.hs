@@ -325,7 +325,7 @@ main = hspec $ do
                   resultEval `shouldBe` "#t"
 
     context "List functions" $ do
-      it "enum, map, filter, foldr, foldl, reverse, take, drop" $ do
+      it "enum, map, filter, foldr, foldl, reverse, take, drop, zip" $ do
               n <- Scope.Scope.createEnvironment
               env <- Scope.Scope.makeLocalEnvironment n (Map.empty)
               fileInput <- clearComment <$> readFile "Library/Library.lisp" 
@@ -392,6 +392,18 @@ main = hspec $ do
                   let test1 = parse' "drop 10 '(1 2 3 4 5)" -- t t = t
                   resultEval <- show <$> Handlers.Eval.eval h env test1
                   resultEval `shouldBe` "NIL"
+
+                  let test1 = parse' "zip () '(1 2 3 4 5)"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "NIL"
+
+                  let test1 = parse' "zip '(1 2 3 4 5) ()"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "NIL"
+
+                  let test1 = parse' "zip '(1 2 3 4 5) '(a b c)"
+                  resultEval <- show <$> Handlers.Eval.eval h env test1
+                  resultEval `shouldBe` "((1 a) (2 b) (3 c))"
 
     context "Usefull functions" $ do
       it "id, flip" $ do

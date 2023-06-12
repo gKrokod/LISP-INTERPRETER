@@ -85,7 +85,7 @@
 (defun id x x)
 (defun flip f (lambda (x y) (f y x)))
 
-;-- List function: map, filter, foldr, foldl, enum, length, sum-list, take, drop;
+;-- List function: map, filter, foldr, foldl, enum, length, sum-list, take, drop, zip;
 (defun enum (start end) (
         (defun go (i result) (cond  ((> i end) nil) 
                                     ((== i end) (cons i result))
@@ -130,6 +130,11 @@
   cond ((null xs) nil)
        ((== num 0) xs)
        (#t (drop (- num 1) (cdr xs)))))
+
+(defun zip (as bs) (
+  if (or (null as) (null bs)) 
+     nil
+     (cons (list (car as) (car bs)) (zip (cdr as) (cdr bs)))))
 
 ; ghci> foldl (-) 10 [1..10] = -45;
 ; ghci> foldr (-) 10 [1..10] = 5;
