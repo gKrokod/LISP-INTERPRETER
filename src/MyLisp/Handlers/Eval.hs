@@ -1,22 +1,22 @@
-module Handlers.Eval where
-import qualified Handlers.Scope as S
-import qualified Handlers.Logger as L
-import qualified Handlers.Logger
-import qualified Handlers.Scope
-import Types
+module MyLisp.Handlers.Eval where
+import qualified MyLisp.Handlers.Scope as S
+import qualified MyLisp.Handlers.Logger as L
+import qualified MyLisp.Handlers.Logger
+import qualified MyLisp.Handlers.Scope
+import MyLisp.Types
 import Data.List (foldl1')
 import qualified Data.Map as Map
 import qualified Data.Text as T
-import Eval.Macros (mExpand, atomExprToMacroName)
-import Eval.Eval (atomExprToName, bprim, boper, bexpt, bdivNum, bdiv, bmod)
+import MyLisp.Eval.Macros (mExpand, atomExprToMacroName)
+import MyLisp.Eval.Eval (atomExprToName, bprim, boper, bexpt, bdivNum, bdiv, bmod)
 import Data.Function
 import Control.Exception (SomeException, try, evaluate)
 
 type SFunc = SExpr -- SF, BO, BP
 
 data Handle m = Handle {
-    scope :: Handlers.Scope.Handle m
-  , logger :: Handlers.Logger.Handle m
+    scope :: MyLisp.Handlers.Scope.Handle m
+  , logger :: MyLisp.Handlers.Logger.Handle m
   , hPrint :: SExpr -> m ()
   , hRead :: m (SExpr)
 }
@@ -160,6 +160,7 @@ apply h env (BOper f) xs = do
     EXPT -> pure $ foldl1' (bexpt) xs' 
     DIV -> pure $ foldl1' (bdiv) xs' 
     MOD -> pure $ foldl1' (bmod) xs' 
+    -- _ -> pure $ Bool False -- try exception
 --
 apply h env (BPrim p) xs = do 
   L.writeLog (logger h) "apply BPrim func.  If empty list = error" 

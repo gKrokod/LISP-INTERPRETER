@@ -1,4 +1,4 @@
-module Handlers.Logger where
+module MyLisp.Handlers.Logger where
 import qualified Data.Text as T
 
 data Handle m = Handle {

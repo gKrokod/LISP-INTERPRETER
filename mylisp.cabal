@@ -25,15 +25,14 @@ source-repository head
 
 library
   exposed-modules:
-      Eval.Eval
-      Eval.Macros
-      Handlers.Eval
-      Handlers.Logger
-      Handlers.Scope
-      Lib
-      Parser
-      Scope.Scope
-      Types
+      MyLisp.Eval.Eval
+      MyLisp.Eval.Macros
+      MyLisp.Handlers.Eval
+      MyLisp.Handlers.Logger
+      MyLisp.Handlers.Scope
+      MyLisp.Parser
+      MyLisp.Scope.Scope
+      MyLisp.Types
   other-modules:
       Paths_mylisp
   hs-source-dirs:

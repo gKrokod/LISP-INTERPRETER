@@ -1,5 +1,5 @@
-module Scope.Scope where
-import Types
+module MyLisp.Scope.Scope where
+import MyLisp.Types
 
 import Control.Concurrent --(MVar, newMVar, putMVar, takeMVar)
 import qualified Data.Map.Strict as Map
@@ -17,8 +17,8 @@ createEnvironment = newEmptyMVar
 makeLocalEnvironment :: Environment' a -> a -> IO (Environment' a)
 makeLocalEnvironment env binding = newMVar (Frame binding env)
 
-fullLocalEnvironment :: (Monoid a) => Environment' a -> a -> IO ()
-fullLocalEnvironment env binding = do 
+fillLocalEnvironment :: (Monoid a) => Environment' a -> a -> IO ()
+fillLocalEnvironment env binding = do 
   isEmpty <- tryTakeMVar env
   case isEmpty of
     Nothing -> do 

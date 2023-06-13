@@ -1,6 +1,6 @@
-module Parser where
+module MyLisp.Parser where
 
-import Types
+import MyLisp.Types
 import Text.Parsec
 import Text.Parsec.String (Parser)
 import Text.Parsec.Char (string)

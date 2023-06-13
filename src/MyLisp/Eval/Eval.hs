@@ -1,6 +1,6 @@
-module Eval.Eval where
-import Types
-import Parser (parseInput, clearComment)
+module MyLisp.Eval.Eval where
+import MyLisp.Types
+import MyLisp.Parser (parseInput, clearComment)
 import Text.Parsec (parse)
 import Data.List ((\\))
 -- data Handle m = Handle {
@@ -14,7 +14,8 @@ import Data.List ((\\))
 atomExprToName :: SExpr -> [Name]
 atomExprToName (Atom str) = [str]
 atomExprToName (List xs) = concatMap atomExprToName xs
-atomExprToName x = error $ "vot tyt " ++  show x
+-- atomExprToName x = error $ "vot tyt " ++  show x
+-- atomExprToName _ = Void
 
 hPrint :: SExpr -> IO ()
 hPrint = print 
@@ -41,6 +42,7 @@ bprim p (List (a : as)) (List (b : bs)) = case (bprim (==) a b) of
                                            False -> bprim p a b
                                            True -> bprim p (List as) (List bs)   
 -- bprim p _ _ = error "bprim on undefined arguments"
+bprim _ _ _ = False -- Void exception
 
 boper :: (forall a. (Num a) => a -> a -> a) -> SExpr -> SExpr -> SExpr
 boper func (Number a) (Number b) = Number $ func a b
@@ -51,6 +53,7 @@ boper func (Number a) (Num b) = Num $ func (fromIntegral a) b
 boper (+) (String a) (String b) = String $ a <> b  -- concat
 boper (-) (String a) (String b) = String $ a \\ b  -- list difference (non-associative)
 -- boper _ _ _  = error "boper in undefined arguments"
+boper _ _ _  = Void -- так как не могу поймать исключения, пусть будет так
 
 --- возведение в степень любых чисел
 bexpt:: SExpr -> SExpr -> SExpr
@@ -58,6 +61,7 @@ bexpt (Num a) (Num b) = Num $ a ** b
 bexpt (Number a) (Num b) = Num $ (fromIntegral a) ** b
 bexpt (Num a) (Number b) = Num $ a ** (fromIntegral b)
 bexpt (Number a) (Number b) = Number $ a ^ b 
+bexpt _ _ = Void -- так как не могу поймать исключения, пусть будет так
 
 -- деление рациональных чисел
 bdivNum:: SExpr -> SExpr -> SExpr
@@ -66,6 +70,7 @@ bdivNum (Number a) (Num b) = Num $ (fromIntegral a) / b
 bdivNum (Num a) (Number b) = Num $ a / (fromIntegral b)
 bdivNum (Number a) (Number b) = Num $ (fromIntegral a) / (fromIntegral b )
 -- bdivNum _ _ = error "bdivmod in undefined arguments"
+bdivNum _ _ = Void
 
 -- целочисленное деление и удаление
 bdiv:: SExpr -> SExpr -> SExpr
@@ -74,3 +79,4 @@ bdiv (Number a) (Number b) = Number $ a `div` b
 bmod:: SExpr -> SExpr -> SExpr
 bmod (Number a) (Number b) = Number $ a `mod` b 
 -- bmod _ _ = error "bmod in undefined arguments"
+bmod _ _ = Void

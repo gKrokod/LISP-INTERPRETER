@@ -1,4 +1,4 @@
-module Types where
+module MyLisp.Types where
 import Control.Concurrent (MVar)
 import Data.List (intercalate)
 import qualified Data.Map.Strict as Map
