@@ -62,7 +62,7 @@ executables:
     dependencies:
     - parsec
     - containers
-    - lisp
+    - mylisp
     - mtl
     - text
     - split
@@ -76,7 +76,7 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - lisp
+    - mylisp
     - parsec
     - QuickCheck
     - hspec

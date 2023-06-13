@@ -4,14 +4,14 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           lisp
+name:           mylisp
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/lisp#readme>
-homepage:       https://github.com/githubuser/lisp#readme
-bug-reports:    https://github.com/githubuser/lisp/issues
+homepage:       https://github.com/gKrokod/LISP-INTERPRETER#readme
+bug-reports:    https://github.com/gKrokod/LISP-INTERPRETER/issues
 author:         gKrokod
-maintainer:     example@example.com
-copyright:      2023 Author name here
+maintainer:     @ofspb
+copyright:      2023 gKrokod
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -21,7 +21,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/lisp
+  location: https://github.com/gKrokod/LISP-INTERPRETER
 
 library
   exposed-modules:
@@ -35,7 +35,7 @@ library
       Scope.Scope
       Types
   other-modules:
-      Paths_lisp
+      Paths_mylisp
   hs-source-dirs:
       src
   default-extensions:
@@ -57,7 +57,7 @@ library
 executable lisp-exe
   main-is: Main.hs
   other-modules:
-      Paths_lisp
+      Paths_mylisp
   hs-source-dirs:
       app
   default-extensions:
@@ -72,8 +72,8 @@ executable lisp-exe
   build-depends:
       base >=4.7 && <5
     , containers
-    , lisp
     , mtl
+    , mylisp
     , parsec
     , split
     , text
@@ -83,7 +83,7 @@ test-suite lisp-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Paths_lisp
+      Paths_mylisp
   hs-source-dirs:
       test
   default-extensions:
@@ -100,6 +100,6 @@ test-suite lisp-test
     , base >=4.7 && <5
     , containers
     , hspec
-    , lisp
+    , mylisp
     , parsec
   default-language: Haskell2010
