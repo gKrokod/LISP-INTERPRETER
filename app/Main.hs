@@ -118,22 +118,33 @@ loop h env = do
           resultEval <- MyLisp.Handlers.Eval.eval h env msg
           print resultEval 
     otherwise -> do  
-        case parse parseInput "lisp" input of
-          Left e -> print e
-          Right msg -> do
-            -- print msg 
-            resultEval <- try @SomeException $ evaluate (MyLisp.Handlers.Eval.eval h env msg)
-            case resultEval of
-              Left e -> do
-                putStrLn "I can't eval \n"
-                -- print $ show e --(e :: PatternMatchFail)
-                -- putStrLn "exception pattern \n"
-                loop h env
-              Right r -> do 
-                putStrLn "exception right"
-                result <- show <$> r
-                putStrLn result 
+      result <- evalText h env input
+      putStrLn result
+        -- case parse parseInput "lisp" input of
+        --   Left e -> print e
+        --   Right msg -> do
+        --     -- print msg 
+        --     resultEval <- try @SomeException $ evaluate (MyLisp.Handlers.Eval.eval h env msg)
+        --     case resultEval of
+        --       Left e -> do
+        --         putStrLn "I can't eval \n"
+        --         -- print $ show e --(e :: PatternMatchFail)
+        --         -- putStrLn "exception pattern \n"
+        --         loop h env
+        --       Right r -> do 
+        --         -- putStrLn "exception right"
+        --         result <- show <$> r
+        --         putStrLn result 
         -- pure ()
   loop h env
 
+evalText :: MyLisp.Handlers.Eval.Handle IO -> Environment -> String -> IO (String)
+evalText h env txt = do
+  case parse parseInput "lisp" txt of
+    Left _ -> pure "I can't eval"
+    Right sexpr -> do
+      resultEval <- try @SomeException $ evaluate (MyLisp.Handlers.Eval.eval h env sexpr)
+      case resultEval of
+        Left _ -> pure "I can't eval"
+        Right sexpr' -> show <$> sexpr'
 --
