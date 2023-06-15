@@ -143,6 +143,12 @@
   (go xs nil nil)
   ))
 
+(defmacro concat (s1 s2) (+ s1 s2))
+
+(defun char-at (str index) (cond ((== "" str) (print "I can't eval") )
+                                 ((== 0 index) (car str))
+                                 (#t (char-at (cdr str) (- index 1)))
+                            ))
 ; ghci> foldl (-) 10 [1..10] = -45;
 ; ghci> foldr (-) 10 [1..10] = 5;
 

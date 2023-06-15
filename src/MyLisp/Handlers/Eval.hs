@@ -191,6 +191,7 @@ apply h env (SForm CAR) xs = do
   (x : _)  <- xs -- possible error pattern matching
   case x of
     List ( result : _) -> pure result
+    String ( result : _) -> pure $ String $ pure result -- 'a' -> m String "a"
     -- _ -> undefined
   
 apply h env (SForm CDR) xs = do 
@@ -198,6 +199,7 @@ apply h env (SForm CDR) xs = do
   (x : _)  <- xs -- possible error pattern matching
   case x of
     List ( _ : result) -> pure $ List result
+    String ( _ : result) -> pure $ String result
     -- _ -> undefined
 
 apply h env (SForm READ) xs = do 

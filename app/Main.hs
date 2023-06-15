@@ -143,6 +143,7 @@ evalText h env txt = do
   case parse parseInput "lisp" txt of
     Left _ -> pure "I can't eval"
     Right sexpr -> do
+      -- resultEval <- try @PatternMatchFail $ evaluate (MyLisp.Handlers.Eval.eval h env sexpr)
       resultEval <- try @SomeException $ evaluate (MyLisp.Handlers.Eval.eval h env sexpr)
       case resultEval of
         Left _ -> pure "I can't eval"
