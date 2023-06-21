@@ -8,20 +8,20 @@
 -- лишние скобки ))))) в конце не рассматриваются парсером как ошибка
 -- 
 module Main (main) where
-import MyLisp.Types (Environment, SExpr(..))
+import Lisp.Types (Environment, SExpr(..))
 -- import Parser
 import Data.Char
 import qualified Data.Map as Map
 -- import Data.Foldable 
 -- import qualified Handlers.Eval
-import qualified MyLisp.Handlers.Scope
-import qualified MyLisp.Handlers.Logger
-import qualified MyLisp.Handlers.Eval
-import qualified MyLisp.Eval.Eval
-import qualified MyLisp.Scope.Scope
+import qualified Lisp.Handlers.Scope
+import qualified Lisp.Handlers.Logger
+import qualified Lisp.Handlers.Eval
+import qualified Lisp.Eval.Eval
+import qualified Lisp.Scope.Scope
 -- import Scope.Scope (Binding)
 -- import Parser (parseInput, clearComment)
-import MyLisp.Parser
+import Lisp.Parser
 import Text.Parsec (parse)
 import qualified Data.Text.IO as TIO 
 -- import Types (Binding)
@@ -31,34 +31,34 @@ type Tab = Int
 main :: IO ()
 main = do
 -- make Scope
-  nilScope <- MyLisp.Scope.Scope.createEnvironment
-  globalScope <- MyLisp.Scope.Scope.makeLocalEnvironment nilScope (Map.fromList [("pi", Num 3.14)])
+  nilScope <- Lisp.Scope.Scope.createEnvironment
+  globalScope <- Lisp.Scope.Scope.makeLocalEnvironment nilScope (Map.fromList [("pi", Num 3.14)])
   let handleScope =
-        MyLisp.Handlers.Scope.Handle
+        Lisp.Handlers.Scope.Handle
           {   
-            MyLisp.Handlers.Scope.makeLocalEnvironment = MyLisp.Scope.Scope.makeLocalEnvironment 
-          , MyLisp.Handlers.Scope.fillLocalEnvironment = MyLisp.Scope.Scope.fillLocalEnvironment 
-          , MyLisp.Handlers.Scope.clearEnvironment = undefined 
-          , MyLisp.Handlers.Scope.check = MyLisp.Scope.Scope.check
-          , MyLisp.Handlers.Scope.insert = MyLisp.Scope.Scope.insert
-          , MyLisp.Handlers.Scope.update = MyLisp.Scope.Scope.update
+            Lisp.Handlers.Scope.makeLocalEnvironment = Lisp.Scope.Scope.makeLocalEnvironment 
+          , Lisp.Handlers.Scope.fillLocalEnvironment = Lisp.Scope.Scope.fillLocalEnvironment 
+          , Lisp.Handlers.Scope.clearEnvironment = undefined 
+          , Lisp.Handlers.Scope.check = Lisp.Scope.Scope.check
+          , Lisp.Handlers.Scope.insert = Lisp.Scope.Scope.insert
+          , Lisp.Handlers.Scope.update = Lisp.Scope.Scope.update
           }
 -- set Logger
   let handleLog =
-        MyLisp.Handlers.Logger.Handle
+        Lisp.Handlers.Logger.Handle
           {   
-            MyLisp.Handlers.Logger.writeLog = \msg -> pure ()
+            Lisp.Handlers.Logger.writeLog = \msg -> pure ()
             -- MyLisp.HHandlers.Logger.writeLog = \msg -> TIO.putStrLn $ "[LOG] " <> msg
           }
 
 -- construct Eval
   let handleEval =
-        MyLisp.Handlers.Eval.Handle
+        Lisp.Handlers.Eval.Handle
           {   
-            MyLisp.Handlers.Eval.scope= handleScope
-          , MyLisp.Handlers.Eval.logger = handleLog
-          , MyLisp.Handlers.Eval.hRead = MyLisp.Eval.Eval.hRead
-          , MyLisp.Handlers.Eval.hPrint = MyLisp.Eval.Eval.hPrint
+            Lisp.Handlers.Eval.scope= handleScope
+          , Lisp.Handlers.Eval.logger = handleLog
+          , Lisp.Handlers.Eval.hRead = Lisp.Eval.Eval.hRead
+          , Lisp.Handlers.Eval.hPrint = Lisp.Eval.Eval.hPrint
           }
   putStrLn "main end"  
 -- start Interpretator
@@ -74,7 +74,7 @@ main = do
 --         resultEval <- Handlers.Eval.eval h env msg
 --         print resultEval 
 
-loop :: MyLisp.Handlers.Eval.Handle IO -> Environment -> IO ()
+loop :: Lisp.Handlers.Eval.Handle IO -> Environment -> IO ()
 loop h env = do
   putStr ">>> "
   input <- clearComment <$> getLine
@@ -93,7 +93,7 @@ loop h env = do
           putStrLn "\n Parse Test file: \n"
           print msg 
           putStrLn "\n Eval: \n"
-          resultEval <- try @PatternMatchFail $ evaluate (MyLisp.Handlers.Eval.eval h env msg)
+          resultEval <- try @PatternMatchFail $ evaluate (Lisp.Handlers.Eval.eval h env msg)
           -- resultEval <- try @PatternMatchFail (MyLisp.Handlers.Eval.eval h env msg)
           case resultEval of
               Left e -> do
@@ -115,14 +115,14 @@ loop h env = do
           putStrLn "\n Parse Library file: \n"
           print msg 
           putStrLn "\n Eval: \n"
-          resultEval <- MyLisp.Handlers.Eval.eval h env msg
+          resultEval <- Lisp.Handlers.Eval.eval h env msg
           print resultEval 
     otherwise -> do  
         case parse parseInput "lisp" input of
           Left e -> print e
           Right msg -> do
             -- print msg 
-            resultEval <- try @SomeException $ evaluate (MyLisp.Handlers.Eval.eval h env msg)
+            resultEval <- try @SomeException $ evaluate (Lisp.Handlers.Eval.eval h env msg)
             case resultEval of
               Left e -> do
                 putStrLn "I can't eval \n"

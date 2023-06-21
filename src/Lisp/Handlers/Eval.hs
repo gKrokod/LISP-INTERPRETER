@@ -1,22 +1,22 @@
-module MyLisp.Handlers.Eval where
-import qualified MyLisp.Handlers.Scope as S
-import qualified MyLisp.Handlers.Logger as L
-import qualified MyLisp.Handlers.Logger
-import qualified MyLisp.Handlers.Scope
-import MyLisp.Types
+module Lisp.Handlers.Eval where
+import qualified Lisp.Handlers.Scope as S
+import qualified Lisp.Handlers.Logger as L
+import qualified Lisp.Handlers.Logger
+import qualified Lisp.Handlers.Scope
+import Lisp.Types
 import Data.List (foldl1')
 import qualified Data.Map as Map
 import qualified Data.Text as T
-import MyLisp.Eval.Macros (mExpand, atomExprToMacroName)
-import MyLisp.Eval.Eval (atomExprToName, bprim, boper, bexpt, bdivNum, bdiv, bmod)
+import Lisp.Eval.Macros (mExpand, atomExprToMacroName)
+import Lisp.Eval.Eval (atomExprToName, bprim, boper, bexpt, bdivNum, bdiv, bmod)
 import Data.Function
 import Control.Exception (SomeException, try, evaluate)
 
 type SFunc = SExpr -- SF, BO, BP
 
 data Handle m = Handle {
-    scope :: MyLisp.Handlers.Scope.Handle m
-  , logger :: MyLisp.Handlers.Logger.Handle m
+    scope :: Lisp.Handlers.Scope.Handle m
+  , logger :: Lisp.Handlers.Logger.Handle m
   , hPrint :: SExpr -> m ()
   , hRead :: m (SExpr)
 }

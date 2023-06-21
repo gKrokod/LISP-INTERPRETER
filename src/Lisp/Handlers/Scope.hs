@@ -1,5 +1,5 @@
-module MyLisp.Handlers.Scope where
-import MyLisp.Types
+module Lisp.Handlers.Scope where
+import Lisp.Types
 
 data Handle m = Handle {
     makeLocalEnvironment :: Environment -> Binding ->  m (Environment ) 

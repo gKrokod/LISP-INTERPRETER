@@ -1,6 +1,6 @@
-module MyLisp.Eval.Eval where
-import MyLisp.Types
-import MyLisp.Parser (parseInput, clearComment)
+module Lisp.Eval.Eval where
+import Lisp.Types
+import Lisp.Parser (parseInput, clearComment)
 import Text.Parsec (parse)
 import Data.List ((\\))
 -- data Handle m = Handle {

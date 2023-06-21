@@ -1,7 +1,7 @@
-module MyLisp.Eval.Macros where
-import MyLisp.Types
+module Lisp.Eval.Macros where
+import Lisp.Types
 import qualified Data.Map as Map
-import MyLisp.Eval.Eval
+import Lisp.Eval.Eval
 
 mExpand :: MacroEnvironment -> SExpr -> SExpr
 mExpand mEnv expr@(List [SForm LAMBDA, args, body]) = case Map.lookup expr mEnv of

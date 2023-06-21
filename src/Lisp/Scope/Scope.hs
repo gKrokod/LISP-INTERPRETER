@@ -1,5 +1,5 @@
-module MyLisp.Scope.Scope where
-import MyLisp.Types
+module Lisp.Scope.Scope where
+import Lisp.Types
 
 import Control.Concurrent --(MVar, newMVar, putMVar, takeMVar)
 import qualified Data.Map.Strict as Map
